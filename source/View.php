@@ -45,8 +45,8 @@ abstract class Silva_View
 	const BUTTON_AED = "button_aed";
 	/** shorthand for BUTTON_AED, BUTTON_SEPARATOR */
 	const BUTTON_AEDS = "button_aeds";
-	/** Show SelectAll records button */
-	const BUTTON_SELECT_ALL = "button_select_all";
+	/** Show Select records button */
+	const BUTTON_TOGGLE_SELECT = "button_toggle_select";
 	/** Show the Export to CSV button */
 	const BUTTON_EXPORT_CSV = "button_export_csv";
 	/** Show Import CSV button */
@@ -218,11 +218,7 @@ abstract class Silva_View
 	 */
 	public static function getProgressbarHtml($url)
 	{
-		$html = <<<HTML
-<link rel="stylesheet" href="shared/libs/jquery-ui-1.8.17/css/curry/jquery-ui-1.8.17.custom.css" />
-<script type="text/javascript" src="shared/libs/jquery-ui-1.8.17/js/jquery-ui-1.8.17.custom.min.js"></script>
-<script type="text/javascript">
-// <![CDATA[
+	    $js =<<<JS
 $(function() {
 	$("#progressbar").progressbar({ value: 0 });
 
@@ -244,19 +240,18 @@ $(function() {
 	$.get("$url", null, sendmail, 'json');
 
 });
-// ]]>
-</script>
+JS;
 
-<p>
-	<div id="progressbar"></div>
-</p>
+	    $html =<<<HTML
+<p><div id="progressbar"></div></p>
 <br/>
 <p id="mail-status">
 	Please wait, preparing...
 </p>
 HTML;
 
-		return $html;
+	    Curry_Admin::getInstance()->getHtmlHead()->addInlineScript($js);
+	    return $html;
 	}
 
     public function setViewname($viewname)

@@ -362,10 +362,11 @@ abstract class Silva_Backend extends Curry_Backend
             'end_index' => $end_index
         ), (array) $queryParams));
 
-        $html = Silva_View::getProgressbarHtml($url);
         $this->initMailSession();
-        //$this->includeCss(self::JQUERY_UI_CSS);
-        //$this->includeJavaScript(self::JQUERY_UI_JS);
+        $htmlHead = Curry_Admin::getInstance()->getHtmlHead();
+        $htmlHead->addStylesheet('shared/libs/jquery-ui-1.8.17/css/curry/jquery-ui-1.8.17.custom.css');
+        $htmlHead->addScript('shared/libs/jquery-ui-1.8.17/js/jquery-ui-1.8.17.custom.min.js');
+        $html = Silva_View::getProgressbarHtml($url);
         $this->addMainContent($html);
     }
 
@@ -544,8 +545,6 @@ CSS;
     private function embedJS()
     {
         $js = <<<JS
-<script type="text/javascript">
-/*<![CDATA[*/
 (function($){
 // Info dialog
 $.util.infoDialog = function(dialogTitle, text, onClose){
@@ -595,10 +594,8 @@ $(document).delegate('a.silva-large-image', 'click', function(){
 });
 
 })(jQuery);
-/*]]>*/
-</script>
 JS;
-        self::appendTemplateHead($js);
+        Curry_Admin::getInstance()->getHtmlHead()->addInlineScript($js);
     }
 
     /**

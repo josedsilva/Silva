@@ -62,17 +62,16 @@ class Silva_Grid extends Curry_Flexigrid_Propel
 	}
 
 	/**
-	 * Put a "select all" button on the grid.
-	 * This is a toggle select button.
+	 * Put a "Toggle select" button on the grid.
 	 * @param string $name
 	 * @param array $options
 	 */
-	public function addSelectAllButton($name = "Select all", $options = array())
+	public function addToggleSelectButton($name = "Select all", $options = array())
 	{
 	    $onPress = "function(){
 	    	var \$gridTable = \$('#{$this->id}');
 	    	\$gridTable.find('tr').each(function(){
-	    		if (\$(this).hasClass('trSelected')){
+	    		if(\$(this).hasClass('trSelected')){
 	    			\$(this).removeClass('trSelected');
 	    		} else {
 	    			\$(this).addClass('trSelected');
@@ -118,7 +117,6 @@ class Silva_Grid extends Curry_Flexigrid_Propel
 	            $field = $k;
 	            $display = $v;
 	        }
-
 	        $this->addSearchItem($field, $display);
 	    }
 	}
@@ -135,10 +133,8 @@ class Silva_Grid extends Curry_Flexigrid_Propel
 	        if (! in_array($column->getType(), $columnTypes)) {
 	            continue;
 	        }
-
 	        $columnNames[] = strtolower($column->getName());
 	    }
-
 	    return $columnNames;
 	}
 
@@ -158,11 +154,14 @@ class Silva_Grid extends Curry_Flexigrid_Propel
 	 * Create the ImageProcessor object.
 	 * Requires the Gallery package to be installed.
 	 * @see Packages -> Gallery
+	 *
+	 * @param integer $twd Width of the thumbnail in pixels
+	 * @param integer $tht Height of the thumbnail in pixels
 	 */
-	private static function getThumbnailProcessor()
+	private static function getThumbnailProcessor($twd = 50, $tht = 50)
 	{
-		if (!self::$thumbnailProcessor) {
-			if (!class_exists('ImageProcessor')) {
+		if (! self::$thumbnailProcessor) {
+			if (! class_exists('ImageProcessor')) {
 				throw new Silva_Exception('ImageProcessor not found. Please install the Gallery package.');
 			}
 
@@ -172,8 +171,8 @@ class Silva_Grid extends Curry_Flexigrid_Propel
 				->setOutputFormat(ImageProcessor::FORMAT_PNG)
 				->setResize(true)
 				->setResizeType(ImageProcessor::RESIZE_FIT_BOX)
-				->setResizeWidth(50)
-				->setResizeHeight(50);
+				->setResizeWidth($twd)
+				->setResizeHeight($tht);
 		}
 		return self::$thumbnailProcessor;
 	}
@@ -183,11 +182,14 @@ class Silva_Grid extends Curry_Flexigrid_Propel
 	 * Do not use this method outside the class.
 	 * It's access level is public because it was intended to be a callback method.
 	 * @param string $src
+	 * @param integer $twd
+	 * @param integer $tht
+	 * @param string $flexId
 	 * @return string
 	 */
-	public static function getThumbnailHtml($src, $flexId)
+	public static function getThumbnailHtml($src, $twd, $tht, $flexId)
 	{
-		return $src ? '<a href="' . $src . '" class="silva-large-image" data-flexid=' . $flexId . '><img src="' . self::getThumbnailProcessor()->processImage($src) . '" /></a>' : '[No Thumbnail]';
+		return $src ? '<a href="' . $src . '" class="silva-large-image" data-flexid=' . $flexId . '><img src="' . self::getThumbnailProcessor($twd, $tht)->processImage($src) . '" /></a>' : '[No Thumbnail]';
 	}
 
 	/**
@@ -195,18 +197,20 @@ class Silva_Grid extends Curry_Flexigrid_Propel
 	 * @param string $column: Column name
 	 * @param string $display: Column header text
 	 * @param string $getter: Propel getter method to get the image path.
+	 * @param integer $twd: width of thumbnail in pixels
+	 * @param integer $tht: height of thumbnail in pixels
 	 * @example $flexigrid->addThumbnail('thumb', 'Thumbnail', 'getProduct()->getImage()');
 	 */
-	public function addThumbnail($column, $display, $getter)
+	public function addThumbnail($column, $display, $getter, $twd = 50, $tht = 50)
 	{
 		$this->addRawColumn($column, $display);
-		$callback = create_function('$o', "return " . __CLASS__ . "::getThumbnailHtml(\$o->{$getter}, '{$this->id}');");
+		$callback = create_function('$o', "return " . __CLASS__ . "::getThumbnailHtml(\$o->{$getter}, $twd, $tht, '{$this->id}');");
 		$this->setColumnCallback($column, $callback);
 	}
 
-	public function addRawColumn($column, $display)
+	public function addRawColumn($column, $display, array $columnOptions = array())
 	{
-		$this->addColumn($column, $display, array('sortable' => false, 'escape' => false));
+		$this->addColumn($column, $display, array_merge(array('sortable' => false, 'escape' => false), $columnOptions));
 	}
 
 	/**

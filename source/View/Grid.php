@@ -64,8 +64,8 @@ class Silva_View_Grid extends Silva_View_BaseModel
 			'dialogOptions' => array(),
 			'buttonOptions' => array(),
 		),
-		'SelectAllButton' => array(
-		    'caption' => 'Select all',
+		'ToggleSelectButton' => array(
+		    'caption' => 'Toggle select',
 		    'bclass' => 'tick',
 		    'buttonOptions' => array(),
 		),
@@ -222,8 +222,8 @@ class Silva_View_Grid extends Silva_View_BaseModel
 	            case self::BUTTON_IMPORT_CSV:
 	                $this->addImportCsvButton();
 	                break;
-	            case self::BUTTON_SELECT_ALL:
-	                $this->addSelectAllButton();
+	            case self::BUTTON_TOGGLE_SELECT:
+	                $this->addToggleSelectButton();
 	                break;
 	            default:
 	                $this->addUserDefinedButton($button);
@@ -318,11 +318,11 @@ class Silva_View_Grid extends Silva_View_BaseModel
 	    $this->grid->addDialogButton($csvButton['caption'], $bclass, "dialog_importcsv", "Import CSV for {$this->getTablename()}s", $importCsvUrl, array(), -1, true, (array) $csvButton['buttonOptions']);
 	}
 
-	protected function addSelectAllButton()
+	protected function addToggleSelectButton()
 	{
-	    $selectAllButton = $this->options['SelectAllButton'];
-	    $bclass = (strpos($selectAllButton['bclass'], 'icon_') === false) ? 'icon_' . $selectAllButton['bclass'] : $selectAllButton['bclass'];
-	    $this->grid->addSelectAllButton($selectAllButton['caption'], array_merge($selectAllButton, array(
+	    $toggleSelectButton = $this->options['ToggleSelectButton'];
+	    $bclass = (strpos($toggleSelectButton['bclass'], 'icon_') === false) ? 'icon_' . $toggleSelectButton['bclass'] : $toggleSelectButton['bclass'];
+	    $this->grid->addToggleSelectButton($toggleSelectButton['caption'], array_merge($toggleSelectButton, array(
 	        'bclass' => $bclass,
 	    )));
 	}
