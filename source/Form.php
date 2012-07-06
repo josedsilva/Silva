@@ -117,37 +117,31 @@ class Silva_Form extends Curry_Form
      */
     public function fillModel($instance)
     {
-        //trace(__METHOD__);
-        //trace("locale: " . $instance->getLocale());
-    	$values = $this->getValues();
-    	foreach ($this->getElementColumns() as $elname => $column) {
-    	    //trace("Element name: $elname");
-    		if ($this->getElement($elname)) {
-    			$val = $values[$elname];
-    			if ($column->getType() === PropelColumnTypes::PHP_ARRAY) {
-    				$val = (array) explode(',', $val);
-    			}
-    			//trace($val);
-    			$instance->{"set{$column->getPhpName()}"}($val);
-    		}
-    	}
+        $values = $this->getValues();
+        foreach ($this->getElementColumns() as $elname => $column) {
+            if ($this->getElement($elname)) {
+                $val = $values[$elname];
+                if ($column->getType() === PropelColumnTypes::PHP_ARRAY) {
+                    $val = (array) explode(',', $val);
+                }
+                $instance->{"set{$column->getPhpName()}"}($val);
+            }
+        }
 
-    	// populate i18n
-    	if ($this->i18nTableMap !== null) {
-    		$subform = $this->getSubForm('I18n');
-    		$i18nValues = (array) $values['I18n'];
-    		foreach ($this->getI18nElementColumns() as $elname => $column) {
-    		    //trace("I18n element name: $elname");
-    			if ($subform->getElement($elname)) {
-    			    $val = $i18nValues[$elname];
-        			if ($column->getType() === PropelColumnTypes::PHP_ARRAY) {
-        				$val = (array) explode(',', $val);
-        			}
-        			//trace($val);
-        			$instance->{"set{$column->getPhpName()}"}($val);
-    			}
-    		}
-    	}
+        // populate i18n
+        if ($this->i18nTableMap !== null) {
+            $subform = $this->getSubForm('I18n');
+            $i18nValues = (array) $values['I18n'];
+            foreach ($this->getI18nElementColumns() as $elname => $column) {
+                if ($subform->getElement($elname)) {
+                    $val = $i18nValues[$elname];
+                    if ($column->getType() === PropelColumnTypes::PHP_ARRAY) {
+                        $val = (array) explode(',', $val);
+                    }
+                    $instance->{"set{$column->getPhpName()}"}($val);
+                }
+            }
+        }
     }
 
     /**
@@ -155,51 +149,47 @@ class Silva_Form extends Curry_Form
      * @param BaseObject $instance Model instance whose column values will be used to populate corresponding form fields
      */
     public function fillForm($instance) {
-        //trace(__METHOD__);
-        //trace('locale of $instance:' . $instance->getLocale());
-    	foreach ($this->getElementColumns() as $elname => $column) {
-    		if (! $this->getElement($elname)) {
-    			continue;
-    		}
+        foreach ($this->getElementColumns() as $elname => $column) {
+            if (! $this->getElement($elname)) {
+                continue;
+            }
 
-    		$val = $instance->{"get{$column->getPhpName()}"}();
-    		if ($column->getType() === PropelColumnTypes::PHP_ARRAY) {
-    			$val = implode(',', (array) $val);
-    		}
+            $val = $instance->{"get{$column->getPhpName()}"}();
+            if ($column->getType() === PropelColumnTypes::PHP_ARRAY) {
+                $val = implode(',', (array) $val);
+            }
 
-    		$this->getElement($elname)
-    		    ->setValue($val);
-    	}
+            $this->getElement($elname)
+                ->setValue($val);
+        }
 
-    	// populate i18n fields
-    	if ($this->i18nTableMap !== null) {
-    		$subform = $this->getSubForm('I18n');
-    		//trace('In populate i18n fields, locale of $instance: ' . $instance->getLocale());
-    		$this->locale = $instance->getLocale();
-    		$subform->addAttribs(array(
-    			'legend' => 'Locale: ' . Silva_View::getLanguageString($this->locale)
-    		));
+        // populate i18n fields
+        if ($this->i18nTableMap !== null) {
+            $subform = $this->getSubForm('I18n');
+            $this->locale = $instance->getLocale();
+            $subform->addAttribs(array(
+                'legend' => 'Locale: ' . Silva_View::getLanguageString($this->locale)
+            ));
 
-    		$i18nProperties = Silva_Propel::getBehavior("i18n", $this->tableMap);
-    		foreach ($this->getI18nElementColumns() as $elname => $column) {
-    			if (! $subform->getElement($elname)) {
-    				continue;
-    			}
+            $i18nProperties = Silva_Propel::getBehavior("i18n", $this->tableMap);
+            foreach ($this->getI18nElementColumns() as $elname => $column) {
+                if (! $subform->getElement($elname)) {
+                    continue;
+                }
 
-    			$value = $instance->{"get{$column->getPhpName()}"}();
-    			if ( empty($value) && $this->useDefaultLocaleOnEmptyValue && ($this->locale != $i18nProperties['default_locale']) ) {
-    			    // NOTE: getTranslation() will change the locale of $instance
-    				$value = $instance->getTranslation($i18nProperties['default_locale'])->{"get{$column->getPhpName()}"}();
-    			}
+                $value = $instance->{"get{$column->getPhpName()}"}();
+                if ( empty($value) && $this->useDefaultLocaleOnEmptyValue && ($this->locale != $i18nProperties['default_locale']) ) {
+                    // NOTE: getTranslation() will change the locale of $instance
+                    $value = $instance->getTranslation($i18nProperties['default_locale'])->{"get{$column->getPhpName()}"}();
+                }
 
-    			$subform->getElement($elname)
-    			    ->setValue($value);
-    		}
+                $subform->getElement($elname)
+                    ->setValue($value);
+            }
 
-    		// reset the locale of $instance, just in case getTranslation() changed it
-    		$instance->setLocale($this->locale);
-    	}
-    	//trace('before returning from __fillForm, locale of $instance:' . $instance->getLocale());
+            // reset the locale of $instance, just in case getTranslation() changed it
+            $instance->setLocale($this->locale);
+        }
     }
 
     /**
@@ -208,12 +198,12 @@ class Silva_Form extends Curry_Form
      */
     public function setIgnorePks($value)
     {
-    	$this->ignorePks = (boolean) $value;
+        $this->ignorePks = (boolean) $value;
     }
 
     public function getIgnorePks()
     {
-    	return $this->ignorePks;
+        return $this->ignorePks;
     }
 
     /**
@@ -222,47 +212,47 @@ class Silva_Form extends Curry_Form
      */
     public function setIgnoreFks($value)
     {
-    	$this->ignoreFks = (boolean) $value;
+        $this->ignoreFks = (boolean) $value;
     }
 
     public function getIgnoreFks()
     {
-    	return $this->ignoreFks;
+        return $this->ignoreFks;
     }
 
     public function setLocale($locale)
     {
-    	$this->locale = $locale;
+        $this->locale = $locale;
     }
 
     public function getLocale()
     {
-    	return $this->locale;
+        return $this->locale;
     }
 
     public function getTablename()
     {
-    	return $this->tableMap->getPhpName();
+        return $this->tableMap->getPhpName();
     }
 
     public function setUseDefaultLocaleOnEmptyValue($value)
     {
-    	$this->useDefaultLocaleOnEmptyValue = (boolean) $value;
+        $this->useDefaultLocaleOnEmptyValue = (boolean) $value;
     }
 
     public function getUseDefaultLocaleOnEmptyValue()
     {
-    	return $this->useDefaultLocaleOnEmptyValue;
+        return $this->useDefaultLocaleOnEmptyValue;
     }
 
     public function setUseCustomFormElements($value)
     {
-    	$this->useCustomFormElements = (boolean) $value;
+        $this->useCustomFormElements = (boolean) $value;
     }
 
     public function getUseCustomFormElements()
     {
-    	return $this->useCustomFormElements;
+        return $this->useCustomFormElements;
     }
 
     /**
@@ -271,7 +261,7 @@ class Silva_Form extends Curry_Form
      */
     public function addIgnoreColumns(array $ignoreBehaviors)
     {
-    	$this->ignoreColumns = array_merge($this->ignoreColumns, $ignoreBehaviors);
+        $this->ignoreColumns = array_merge($this->ignoreColumns, $ignoreBehaviors);
     }
 
     /**
@@ -280,7 +270,7 @@ class Silva_Form extends Curry_Form
      */
     public function removeIgnoreColumn($behavior)
     {
-    	unset($this->ignoreColumns[$behavior]);
+        unset($this->ignoreColumns[$behavior]);
     }
 
     /**
@@ -292,58 +282,57 @@ class Silva_Form extends Curry_Form
      */
     public function createElementFromColumn(ColumnMap $column)
     {
-        //trace(__METHOD__);
-    	if ($this->useCustomFormElements) {
-    		$element = null;
-    		if (method_exists($this->backend, self::CB_GET_CUSTOM_FORM_ELEMENT)) {
-    			$element = call_user_func(array($this->backend, self::CB_GET_CUSTOM_FORM_ELEMENT), $this, $column->getPhpName());
-    			if ($element) {
-    				return $element;
-    			}
-    		}
-    	}
+        if ($this->useCustomFormElements) {
+            $element = null;
+            if (method_exists($this->backend, self::CB_GET_CUSTOM_FORM_ELEMENT)) {
+                $element = call_user_func(array($this->backend, self::CB_GET_CUSTOM_FORM_ELEMENT), $this, $column->getPhpName());
+                if ($element) {
+                    return $element;
+                }
+            }
+        }
 
-    	// create select dropdown for foreign-key column.
-    	if ($column->isForeignKey()) {
-    		$element = $this->createElement('select', strtolower($column->getName()), array(
-    			'multiOptions' => self::getMultiOptionsForFk($column, $this->locale)
-    		));
-    	} else {
-    		switch ($column->getType()) {
-    			case PropelColumnTypes::LONGVARCHAR:
-    				$element = $this->createElement('textarea', strtolower($column->getName()));
-    				break;
-    			case PropelColumnTypes::DATE:
-    				$element = $this->createElement('date', strtolower($column->getName()));
-    				break;
-    			case PropelColumnTypes::TIMESTAMP:
-    				$element = $this->createElement('dateTime', strtolower($column->getName()));
-    				$element->setDescription('Choose date from the DatePicker and time should be entered in HH:MM:SS format.');
-    				break;
-    			case PropelColumnTypes::BOOLEAN:
-    				$element = $this->createElement('checkbox', strtolower($column->getName()));
-    				break;
-    			case PropelColumnTypes::ENUM:
-    			    $element = $this->createElement('select', strtolower($column->getName()), array(
-    			        'multiOptions' => array_combine(
-    			            $column->getValueSet(),
-    			            array_map("ucfirst", $column->getValueSet())
-    			        ),
-    			    ));
-    			    break;
-    			case PropelColumnTypes::DOUBLE:
-    			case PropelColumnTypes::FLOAT:
-    			case PropelColumnTypes::INTEGER:
-    			case PropelColumnTypes::VARCHAR:
-    			default:
-    				$element = $this->createElement('text', strtolower($column->getName()));
-    				break;
-    		}
-    	}
+        // create select dropdown for foreign-key column.
+        if ($column->isForeignKey()) {
+            $element = $this->createElement('select', strtolower($column->getName()), array(
+                'multiOptions' => self::getMultiOptionsForFk($column, $this->locale)
+            ));
+        } else {
+            switch ($column->getType()) {
+                case PropelColumnTypes::LONGVARCHAR:
+                    $element = $this->createElement('textarea', strtolower($column->getName()));
+                    break;
+                case PropelColumnTypes::DATE:
+                    $element = $this->createElement('date', strtolower($column->getName()));
+                    break;
+                case PropelColumnTypes::TIMESTAMP:
+                    $element = $this->createElement('dateTime', strtolower($column->getName()));
+                    $element->setDescription('Choose date from the DatePicker and time should be entered in HH:MM:SS format.');
+                    break;
+                case PropelColumnTypes::BOOLEAN:
+                    $element = $this->createElement('checkbox', strtolower($column->getName()));
+                    break;
+                case PropelColumnTypes::ENUM:
+                    $element = $this->createElement('select', strtolower($column->getName()), array(
+                        'multiOptions' => array_combine(
+                            $column->getValueSet(),
+                            array_map("ucfirst", $column->getValueSet())
+                        ),
+                    ));
+                    break;
+                case PropelColumnTypes::DOUBLE:
+                case PropelColumnTypes::FLOAT:
+                case PropelColumnTypes::INTEGER:
+                case PropelColumnTypes::VARCHAR:
+                default:
+                    $element = $this->createElement('text', strtolower($column->getName()));
+                    break;
+            }
+        }
 
-    	$element->setLabel(ucfirst(strtolower(str_replace("_", " ", $column->getName()))));
-    	$element->setRequired($column->isNotNull());
-    	return $element;
+        $element->setLabel(ucfirst(strtolower(str_replace("_", " ", $column->getName()))));
+        $element->setRequired($column->isNotNull());
+        return $element;
     }
 
     /**
@@ -352,8 +341,6 @@ class Silva_Form extends Curry_Form
      */
     protected static function getMultiOptionsForFk(ColumnMap $foreignColumn, $locale = null)
     {
-        //trace(__METHOD__);
-        //trace($foreignColumn);
         $foreignTableMap = $foreignColumn->getRelation()->getForeignTable();
         $foreignTablename = $foreignTableMap->getPhpName();
         $q = PropelQuery::from($foreignTablename);

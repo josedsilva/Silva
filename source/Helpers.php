@@ -27,38 +27,38 @@
  */
 abstract class Silva_Helpers
 {
-	const TEMP_PATH = 'content/temp/';
+    const TEMP_PATH = 'content/temp/';
 
-	public function __construct()
-	{
-		throw new Exception(__CLASS__ . " should not be instantiated.");
-	}
+    public function __construct()
+    {
+        throw new Exception(__CLASS__ . " should not be instantiated.");
+    }
 
-	/**
-	 * Return the temporary path.
-	 * If path does not exist it will be created.
-	 * @param boolean $fullPath Return the full path instead of the relative path
-	 * @return string
-	 */
-	public static function getTempPath($fullPath = false)
-	{
-		$fullTempPath = Curry_Core::$config->curry->wwwPath . '/' . self::TEMP_PATH;
-		if (! file_exists($fullTempPath)) {
-			mkdir($fullTempPath);
-		}
+    /**
+     * Return the temporary path.
+     * If path does not exist it will be created.
+     * @param boolean $fullPath Return the full path instead of the relative path
+     * @return string
+     */
+    public static function getTempPath($fullPath = false)
+    {
+        $fullTempPath = Curry_Core::$config->curry->wwwPath . '/' . self::TEMP_PATH;
+        if (! file_exists($fullTempPath)) {
+            mkdir($fullTempPath);
+        }
 
-		return $fullPath ? $fullTempPath : self::TEMP_PATH;
-	}
+        return $fullPath ? $fullTempPath : self::TEMP_PATH;
+    }
 
-	/**
-	 * Whether $object belongs to $class
-	 * @param $object
-	 * @param string $class
-	 * @return boolean
-	 */
-	public static function is_class($object, $class)
-	{
-		return (is_object($object) && (get_class($object)==$class));
-	}
+    /**
+     * Whether $object belongs to $class
+     * @param $object
+     * @param string $class
+     * @return boolean
+     */
+    public static function is_class($object, $class)
+    {
+        return (is_object($object) && (get_class($object)==$class));
+    }
 
 } //Silva_Helpers

@@ -25,7 +25,8 @@
  * @version
  *
  */
-class Silva_Propel extends Curry_Propel {
+class Silva_Propel extends Curry_Propel
+{
 
     /**
      * Return true if $tableMap has the specified behavior; false otherwise
@@ -55,7 +56,8 @@ class Silva_Propel extends Curry_Propel {
      * @param TableMap $tableMap
      * @return boolean
      */
-    public static function hasI18nBehavior(TableMap $tableMap) {
+    public static function hasI18nBehavior(TableMap $tableMap)
+    {
         return self::hasBehavior('i18n', $tableMap);
     }
 
@@ -93,7 +95,8 @@ class Silva_Propel extends Curry_Propel {
      * Whether $column is an I18n column
      * @param string $column
      */
-    public static function hasI18nColumn($column, TableMap $tableMap) {
+    public static function hasI18nColumn($column, TableMap $tableMap)
+    {
         $i18nTableMap = self::getI18nTableMap($tableMap);
         if ($i18nTableMap !== null) {
             return $i18nTableMap->hasColumn($column);
@@ -107,7 +110,8 @@ class Silva_Propel extends Curry_Propel {
      * @param string $column
      * @return ColumnMap|null
      */
-    public static function getI18nColumn($column, TableMap $tableMap) {
+    public static function getI18nColumn($column, TableMap $tableMap)
+    {
         $i18nTableMap = self::getI18nTableMap($tableMap);
         if ($i18nTableMap !== null) {
             return $i18nTableMap->getColumn($column);

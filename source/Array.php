@@ -25,7 +25,8 @@
  * @version
  *
  */
-class Silva_Array extends Curry_Array {
+class Silva_Array extends Curry_Array
+{
 
     /**
      * Return the values of the $input array recursively.
@@ -34,15 +35,16 @@ class Silva_Array extends Curry_Array {
      */
     public static function array_values_recursive(array $input)
     {
-    	$values = array();
-    	foreach ($input as $elm) {
-    		if (is_array($elm)) {
-    			$values = array_merge($values, self::array_values_recursive($elm));
-    		} else {
-    			$values[] = $elm;
-    		}
-    	}
-    	return $values;
+        $values = array();
+        foreach ($input as $elm) {
+            if (is_array($elm)) {
+                $values = array_merge($values, self::array_values_recursive($elm));
+            } else {
+                $values[] = $elm;
+            }
+        }
+
+        return $values;
     }
 
     /**

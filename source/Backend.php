@@ -92,8 +92,6 @@ abstract class Silva_Backend extends Curry_Backend
      */
     public function setViews(array $views)
     {
-        //trace(__METHOD__);
-        //trace($views);
         foreach ($views as $index => $view) {
             if ($index == 0) {
                 $viewname = 'Main';

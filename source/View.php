@@ -136,8 +136,6 @@ abstract class Silva_View
      */
     public function __construct(Curry_Backend $backend)
     {
-        //trace("View default options");
-        //trace(self::$defaultOptions);
         $this->extendOptions(self::$defaultOptions);
         $this->backend = $backend;
     }
@@ -170,13 +168,13 @@ abstract class Silva_View
     		->getName();
     }
 
-	  /**
-	   * Return a filter form without form elements.
-	   * @param array $formElements
-	   * @param string $class
-	   * @param string $title
-	   * @return Curry_Form
-	   */
+    /**
+    * Return a filter form without form elements.
+    * @param array $formElements
+    * @param string $class
+    * @param string $title
+    * @return Curry_Form
+    */
     public static function getFilterForm(array $formElements, $class = 'filters', $title = 'Filters')
     {
         $form = self::getPartialForm(array(), 'get', $class);
@@ -226,6 +224,7 @@ abstract class Silva_View
     /**
      * Return the HTML snippet to embed a progress-bar widget.
      * @param string $url
+     * @return string
      */
     public static function getProgressbarHtml($url)
     {
@@ -365,40 +364,40 @@ HTML;
      */
     protected static function getImportCsvForm()
     {
-    	return new Curry_Form(array(
-    		'action' => url('', $_GET),
-    		'method' => 'post',
-    		'enctype' => 'application/x-www-form-urlencoded',
-    	  'class' => 'dialog-form',
-    		'elements' => array(
-    			'csvfile' => array('filebrowser', array(
-    				'label' => 'CSV file',
-    				'description' => 'A file with comma separated values (name,email).',
-    				//'destination' => Curry_Core::$config->curry->projectPath . '/data/temp/',
-    				'required' => true,
-    			)),
-    			'delimiter' => array('text', array(
-    				'label' => 'Delimiter',
-    				'description' => 'Delimiter used for separating fields. The default is comma (,) but in some cases semicolon (;) is used.',
-    				'value' => ',',
-    				'required' => true,
-    			)),
-    			'enclosure' => array('text', array(
-    				'label' => 'Enclosure',
-    				'description' => 'Character used for string enclosure.',
-    				'value' => '"',
-    				'required' => true,
-    			)),
-    			'escape' => array('text', array(
-    				'label' => 'Escape',
-    				'description' => 'Character used for escaping.',
-    				'value' => '\\',
-    				'required' => true,
-    			)),
-    			'import' => array('submit', array('label' => 'Import')),
-    		),
-    	));
+        return new Curry_Form(array(
+            'action' => url('', $_GET),
+            'method' => 'post',
+            'enctype' => 'application/x-www-form-urlencoded',
+            'class' => 'dialog-form',
+            'elements' => array(
+                'csvfile' => array('filebrowser', array(
+                    'label' => 'CSV file',
+                    'description' => 'A file with comma separated values (name,email).',
+                    //'destination' => Curry_Core::$config->curry->projectPath . '/data/temp/',
+                    'required' => true,
+                )),
+                'delimiter' => array('text', array(
+                    'label' => 'Delimiter',
+                    'description' => 'Delimiter used for separating fields. The default is comma (,) but in some cases semicolon (;) is used.',
+                    'value' => ',',
+                    'required' => true,
+                )),
+                'enclosure' => array('text', array(
+                    'label' => 'Enclosure',
+                    'description' => 'Character used for string enclosure.',
+                    'value' => '"',
+                    'required' => true,
+                )),
+                'escape' => array('text', array(
+                    'label' => 'Escape',
+                    'description' => 'Character used for escaping.',
+                    'value' => '\\',
+                    'required' => true,
+                )),
+                'import' => array('submit', array('label' => 'Import')),
+            ),
+        ));
     }
 
 
-} //Silva_View
+} // Silva_View
