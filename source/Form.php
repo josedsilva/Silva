@@ -101,16 +101,11 @@ class Silva_Form extends Curry_Form
     }
 
     /**
-     * Initialize I18n behavior if relevant.
+     * Initialize I18n behavior (if relevant)
      */
     protected function initI18nBehavior()
     {
-        if (! Silva_View_BaseModel::hasBehavior('i18n', $this->tableMap)) {
-            return;
-        }
-
-        $i18nTablename = "{$this->getTablename()}I18n";
-        $this->i18nTableMap = PropelQuery::from($i18nTablename)->getTableMap();
+        $this->i18nTableMap = Silva_Propel::getI18nTableMap($this->tableMap);
     }
 
     /**
@@ -157,7 +152,7 @@ class Silva_Form extends Curry_Form
 
     /**
      * Populate form elements with values from the model $instance.
-     * @param BaseObject $instance
+     * @param BaseObject $instance Model instance whose column values will be used to populate corresponding form fields
      */
     public function fillForm($instance) {
         //trace(__METHOD__);
@@ -185,9 +180,9 @@ class Silva_Form extends Curry_Form
     			'legend' => 'Locale: ' . Silva_View::getLanguageString($this->locale)
     		));
 
-    		$i18nProperties = Silva_View_BaseModel::getBehavior("I18n", $this->tableMap);
+    		$i18nProperties = Silva_Propel::getBehavior("i18n", $this->tableMap);
     		foreach ($this->getI18nElementColumns() as $elname => $column) {
-    			if (!$subform->getElement($elname)) {
+    			if (! $subform->getElement($elname)) {
     				continue;
     			}
 
@@ -362,7 +357,7 @@ class Silva_Form extends Curry_Form
         $foreignTableMap = $foreignColumn->getRelation()->getForeignTable();
         $foreignTablename = $foreignTableMap->getPhpName();
         $q = PropelQuery::from($foreignTablename);
-        if ( ($locale !== null) && Silva_View_BaseModel::hasBehavior('i18n', $foreignTableMap)) {
+        if (($locale !== null) && Silva_Propel::hasBehavior('i18n', $foreignTableMap)) {
             $q->joinWithI18n($locale);
         }
         $objs = $q->find();
@@ -419,7 +414,7 @@ class Silva_Form extends Curry_Form
     protected function getIgnoreColumns()
     {
         $columns = array();
-        if (!empty($this->ignoreColumns)) {
+        if (! empty($this->ignoreColumns)) {
             $behaviors = $this->tableMap->getBehaviors();
             foreach ($this->ignoreColumns as $behavior => $igcols) {
                 if (array_key_exists($behavior, $behaviors)) {

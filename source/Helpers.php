@@ -17,7 +17,7 @@
  *
  */
 /**
- * Helpers
+ * Reusable general purpose methods.
  *
  * @category	Curry
  * @package		Silva
@@ -48,36 +48,6 @@ abstract class Silva_Helpers
 		}
 
 		return $fullPath ? $fullTempPath : self::TEMP_PATH;
-	}
-
-	/**
-	 * Return the values of the $input array recursively.
-	 * @param array $input
-	 * @return array
-	 */
-	public static function array_values_recursive(array $input)
-	{
-		$values = array();
-		foreach ($input as $elm) {
-			if (is_array($elm)) {
-				$values = array_merge($values, self::array_values_recursive($elm));
-			} else {
-				$values[] = $elm;
-			}
-		}
-		return $values;
-	}
-
-	/**
-	 * Return the index or the numerical position of an array key.
-	 * @param mixed $key
-	 * @param array $haystack
-	 * @param bool $strict
-	 * @return integer|false
-	 */
-	public static function array_key_index($key, array $haystack, $strict = false)
-	{
-	    return array_search($key, array_keys($haystack), $strict);
 	}
 
 	/**

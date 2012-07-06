@@ -35,15 +35,6 @@ abstract class Silva_Backend extends Curry_Backend
     const URL_QUERY_LOCALE = 'locale';
     /**#@-*/
 
-    /**#@+
-     * @category Content type
-     */
-    const CONTENT_TEXT = "content_text";
-    const CONTENT_HTML = "content_html";
-    /**#@-*/
-
-    const DEFAULT_CONTENT_TYPE = self::CONTENT_TEXT;
-
     /**
      * Map of viewnames and corresponding view objects
      * @var array
@@ -97,7 +88,7 @@ abstract class Silva_Backend extends Curry_Backend
 
     /**
      * Set the view collection.
-     * @param array $views An indexed array of Silva_View_BaseModel objects
+     * @param array $views An indexed array of Silva_View objects
      */
     public function setViews(array $views)
     {
@@ -483,7 +474,7 @@ abstract class Silva_Backend extends Curry_Backend
     {
         $viewStack = $this->getViewStack();
         if (! empty($viewStack)) {
-            $offset = Silva_Helpers::array_key_index($view, $this->viewMap);
+            $offset = Silva_Array::array_key_index($view, $this->viewMap);
             if ($offset !== false) {
                 array_splice($viewStack, $offset);
             }

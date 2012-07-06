@@ -98,7 +98,7 @@ class Silva_View_Grid extends Silva_View_BaseModel
 	 */
 	public function &getGrid($buttons = null, $options = null, $query = null, $id = null, $title = null)
 	{
-	    trace(__METHOD__);
+	    //trace(__METHOD__);
 	    // do not recreate the grid if already defined
 	    if ( $this->isGridDefined() && (func_num_args() === 0) ) {
 	        return $this->grid;
@@ -171,8 +171,8 @@ class Silva_View_Grid extends Silva_View_BaseModel
 	    	//trace("i18nColumns:");
 	    	//trace($i18nColumns);
 	    	//trace($i18nProperties['i18n_columns']);
-	    	foreach (self::getI18nColumns($this->tableMap) as $column) {
-	    	    if ( in_array(strtolower($column->getName()), $i18nColumns) ) {
+	    	foreach (Silva_Propel::getI18nColumns($this->tableMap) as $column) {
+	    	    if (in_array(strtolower($column->getName()), $i18nColumns)) {
 	    	        $query->withColumn("{$this->getI18nTablename()}.{$column->getPhpName()}", "I18n{$column->getPhpName()}");
 	    	    }
 	    	}

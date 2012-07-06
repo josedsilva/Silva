@@ -27,153 +27,164 @@
  */
 abstract class Silva_View
 {
-	/**#@+
-	 * @category Button
-	 */
+    /**#@+
+     * @category Button
+     */
 
-	/** Show button separator */
-	const BUTTON_SEPARATOR = "button_separator";
-	/** Show Add button */
-	const BUTTON_ADD = "button_add";
-	/** Show Edit button */
-	const BUTTON_EDIT = "button_edit";
-	/** Show Delete button */
-	const BUTTON_DELETE = "button_delete";
-	/** Show Add, Edit and Delete buttons.
-	 * Short-hand for BUTTON_ADD, BUTTON_EDIT and BUTTON_DELETE constants.
-	 */
-	const BUTTON_AED = "button_aed";
-	/** shorthand for BUTTON_AED, BUTTON_SEPARATOR */
-	const BUTTON_AEDS = "button_aeds";
-	/** Show Select records button */
-	const BUTTON_TOGGLE_SELECT = "button_toggle_select";
-	/** Show the Export to CSV button */
-	const BUTTON_EXPORT_CSV = "button_export_csv";
-	/** Show Import CSV button */
-	const BUTTON_IMPORT_CSV = "button_import_csv";
-	/**#@-*/
+    /** Show button separator */
+    const BUTTON_SEPARATOR = "button_separator";
+    /** Show Add button */
+    const BUTTON_ADD = "button_add";
+    /** Show Edit button */
+    const BUTTON_EDIT = "button_edit";
+    /** Show Delete button */
+    const BUTTON_DELETE = "button_delete";
+    /** Show Add, Edit and Delete buttons.
+     * Short-hand for BUTTON_ADD, BUTTON_EDIT and BUTTON_DELETE constants.
+     */
+    const BUTTON_AED = "button_aed";
+    /** shorthand for BUTTON_AED, BUTTON_SEPARATOR */
+    const BUTTON_AEDS = "button_aeds";
+    /** Show Select records button */
+    const BUTTON_TOGGLE_SELECT = "button_toggle_select";
+    /** Show the Export to CSV button */
+    const BUTTON_EXPORT_CSV = "button_export_csv";
+    /** Show Import CSV button */
+    const BUTTON_IMPORT_CSV = "button_import_csv";
+    /**#@-*/
 
-	/** The default button icon class */
-	const BUTTON_BCLASS_DEFAULT = "icon_brick";
+    /** The default button icon class */
+    const BUTTON_BCLASS_DEFAULT = "icon_brick";
 
-	/**#@+
-	 * @category Button type
-	 */
+    /**#@+
+     * @category Button type
+     */
 
-	/** Link button. Default button type if type is not specified */
-	const BUTTON_TYPE_LINK = "button_type_link";
+    /** Link button. Default button type if type is not specified */
+    const BUTTON_TYPE_LINK = "button_type_link";
 
-	/** Dialog button. Clicking this button results in a thickbox popup showing up */
-	const BUTTON_TYPE_DIALOG = "button_type_dialog";
+    /** Dialog button. Clicking this button results in a thickbox popup showing up */
+    const BUTTON_TYPE_DIALOG = "button_type_dialog";
 
-	/** Raw button. @see Curry_Flexigrid::addButton */
-	const BUTTON_TYPE_RAW = "button_type_raw";
+    /** Raw button. @see Curry_Flexigrid::addButton */
+    const BUTTON_TYPE_RAW = "button_type_raw";
 
-	/** Command button */
-	const BUTTON_TYPE_COMMAND = "button_type_command";
+    /** Command button */
+    const BUTTON_TYPE_COMMAND = "button_type_command";
 
-	/** Action button */
-	const BUTTON_TYPE_ACTION = "button_type_action";
-	/**#@-*/
+    /** Action button */
+    const BUTTON_TYPE_ACTION = "button_type_action";
+    /**#@-*/
 
-	/**#@+
-	 * @category Button mode
-	 */
+    /**#@+
+     * @category Button mode
+     */
 
-	/** Allow a button to return status and show it in an alert box */
-	const BUTTON_MODE_STATUS = "button_mode_status";
-	/**#@-*/
+    /** Allow a button to return status and show it in an alert box */
+    const BUTTON_MODE_STATUS = "button_mode_status";
+    /**#@-*/
 
-	const JS_SUBMIT_FORM = 'this.form.submit();';
+    const JS_SUBMIT_FORM = 'this.form.submit();';
 
-	/**
-	 * Breadcrumb text
-	 * @var string|null
-	 */
-	protected $breadcrumbText = null;
+    /**#@+
+     * @category Content type
+     */
+    const CONTENT_TEXT = "content_text";
+    const CONTENT_HTML = "content_html";
+    /**#@-*/
 
-	/**
-	 * View description
-	 * @var string|null
-	 */
-	protected $description = null;
-
-	/**
-	 * Content type of view description
-	 * @see Silva_Backend: Content type
-	 */
-	protected $descContentType = null;
-
-	/**
-	 * Curry_Backend instance
-	 * @var Curry_Backend
-	 */
-	protected $backend = null;
-
-	protected $viewname = null;
-
-	protected static $defaultOptions = array();
-	/**
-	 * Effective options
-	 * @var array
-	 */
-	protected $options = array();
-
-	protected $filterForm = null;
-
-	/**
-	 * Instantiate the view
-	 * @param Curry_Backend $backend
-	 */
-	public function __construct(Curry_Backend $backend)
-	{
-	    trace("View default options");
-	    trace(self::$defaultOptions);
-	    $this->extendOptions(self::$defaultOptions);
-	    $this->backend = $backend;
-	}
-
-	protected function extendOptions(array $extenderOptions)
-	{
-	    $this->options = Curry_Array::extend($this->options, $extenderOptions);
-	}
-
-	/**
-	 * Render the view
-	 */
-	abstract public function render();
-
-	/**
-	 * Return the descriptive locale name from the Curry CMS translation table.
-	 * @example $locale=="sv_SE", return: "Svenska"
-	 *
-	 * @param string $locale
-	 * @return string
-	 */
-	public static function getLanguageString($locale)
-	{
-		return LanguageQuery::create()
-			->findPk($locale)
-			->getName();
-	}
+    const DEFAULT_CONTENT_TYPE = self::CONTENT_TEXT;
 
     /**
-     * Return a filter form without form elements.
-     * @param array $form_elements
-     * @return Curry_Form
+     * Breadcrumb text
+     * @var string|null
      */
-    public static function getFilterForm($formElements = array(), $formClass = 'filters', $title = 'Filters')
+    protected $breadcrumbText = null;
+
+    /**
+     * View description
+     * @var string|null
+     */
+    protected $description = null;
+
+    /**
+     * Content type of view description
+     * @see Silva_Backend: Content type
+     */
+    protected $descContentType = null;
+
+    /**
+     * Curry_Backend instance
+     * @var Curry_Backend
+     */
+    protected $backend = null;
+
+    protected $viewname = null;
+
+    protected static $defaultOptions = array();
+    /**
+     * Effective options
+     * @var array
+     */
+    protected $options = array();
+
+    protected $filterForm = null;
+
+    /**
+     * Instantiate the view
+     * @param Curry_Backend $backend
+     */
+    public function __construct(Curry_Backend $backend)
     {
-        $form = new Curry_Form(array(
-            'action' => url('', $_GET),
-            'method' => 'get',
-            'class' => $formClass,
-            'title' => $title,
-            'elements' => $formElements
-        ));
+        //trace("View default options");
+        //trace(self::$defaultOptions);
+        $this->extendOptions(self::$defaultOptions);
+        $this->backend = $backend;
+    }
+
+    /**
+     * Helper method to extend View options.
+     * @param array $extenderOptions
+     */
+    protected function extendOptions(array $extenderOptions)
+    {
+        $this->options = Curry_Array::extend($this->options, $extenderOptions);
+    }
+
+    /**
+     * Render the view.
+     */
+    abstract public function render();
+
+    /**
+     * Return the descriptive locale name from the Curry CMS translation table.
+     * @example $locale=="sv_SE", return: "Svenska"
+     *
+     * @param string $locale
+     * @return string
+     */
+    public static function getLanguageString($locale)
+    {
+    	return LanguageQuery::create()
+    		->findPk($locale)
+    		->getName();
+    }
+
+	  /**
+	   * Return a filter form without form elements.
+	   * @param array $formElements
+	   * @param string $class
+	   * @param string $title
+	   * @return Curry_Form
+	   */
+    public static function getFilterForm(array $formElements, $class = 'filters', $title = 'Filters')
+    {
+        $form = self::getPartialForm(array(), 'get', $class);
+        $form->setAttrib('title', $title);
+        $form->setElements($formElements);
 
         foreach ($_GET as $k => $v) {
-            if (!$form->getElement($k)) {
+            if (! $form->getElement($k)) {
                 $form->addElement('hidden', $k, array('value' => $v));
             }
         }
@@ -193,32 +204,32 @@ abstract class Silva_View
         }
     }
 
-	/**
-	 * Return the locale selector
-	 * @param string $locale
-	 * @return Curry_Form
-	 */
-	public static function getLocaleForm($locale)
-	{
-		return self::getFilterForm(array(
-			Silva_Backend::URL_QUERY_LOCALE => array('select', array(
-				'label' => 'Language',
-				'multiOptions' => LanguageQuery::create()
-					->find()
-					->toKeyValue('PrimaryKey', 'Name'),
-				'value' => $locale,
-				'onchange' => 'this.form.submit();',
-			)),
-		), 'locale-selector', 'Locale selector');
-	}
+    /**
+     * Return the locale selector
+     * @param string $locale
+     * @return Curry_Form
+     */
+    public static function getLocaleForm($locale)
+    {
+    	return self::getFilterForm(array(
+    	    Silva_Backend::URL_QUERY_LOCALE => array('select', array(
+            'label' => 'Language',
+            'multiOptions' => LanguageQuery::create()
+            	->find()
+            	->toKeyValue('PrimaryKey', 'Name'),
+            'value' => $locale,
+            'onchange' => 'this.form.submit();',
+    		  )),
+    	), 'locale-selector', 'Locale selector');
+    }
 
-	/**
-	 * Return the HTML snippet to embed a progress-bar widget.
-	 * @param string $url
-	 */
-	public static function getProgressbarHtml($url)
-	{
-	    $js =<<<JS
+    /**
+     * Return the HTML snippet to embed a progress-bar widget.
+     * @param string $url
+     */
+    public static function getProgressbarHtml($url)
+    {
+        $js =<<<JS
 $(function() {
 	$("#progressbar").progressbar({ value: 0 });
 
@@ -252,7 +263,7 @@ HTML;
 
 	    Curry_Admin::getInstance()->getHtmlHead()->addInlineScript($js);
 	    return $html;
-	}
+    }
 
     public function setViewname($viewname)
     {
@@ -283,7 +294,7 @@ HTML;
         return $this->description;
     }
 
-    public function setDescription($text, $contentType = Silva_Backend::DEFAULT_CONTENT_TYPE)
+    public function setDescription($text, $contentType = self::DEFAULT_CONTENT_TYPE)
     {
         $this->description = $text;
         $this->descContentType = $contentType;
@@ -295,10 +306,9 @@ HTML;
             return;
         }
 
-        if ($this->descContentType === Silva_Backend::CONTENT_TEXT) {
+        if ($this->descContentType === self::CONTENT_TEXT) {
             $this->addMessage($this->description, "");
-        }
-        elseif ($this->descContentType === Silva_Backend::CONTENT_HTML) {
+        } elseif ($this->descContentType === self::CONTENT_HTML) {
             $this->addMainContent($this->description);
         }
     }
@@ -332,22 +342,25 @@ HTML;
     /**
      * Return a partially constructed Curry_Form.
      *
-     * @param array $actionQuery
+     * @param array $actionQuery An array of url query parameters for the form's 'action' attribute.
+     * @param string $method 'get' or 'post'
+     * @param string $class A css class for the form (Determine's the type of form in Curry, i.e. dialog or normal)
      * @return Curry_Form
      */
-    protected static function getPartialForm(array $actionQuery = array())
+    protected static function getPartialForm(array $actionQuery = array(), $method = 'post', $class = 'dialog-form')
     {
         $form = new Curry_Form(array(
             'action' => url('', $_GET)->add($actionQuery),
-            'method' => 'post',
-            'class' => 'dialog-form',
+            'method' => $method,
+            'class' => $class,
         ));
 
         return $form;
     }
 
     /**
-     * Return the CSV import form
+     * Return the CSV import form.
+     * (this form is designed to show in a dialog box)
      * @return Curry_Form
      */
     protected static function getImportCsvForm()

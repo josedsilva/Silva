@@ -234,34 +234,9 @@ abstract class Silva_View_BaseModel extends Silva_View
 	    return $this->getCategoryForeignReference()->getPhpName();
 	}
 
-	/**
-	 * Return the specified model behavior
-	 * @param string $behavior
-	 * @param TableMap $tableMap
-	 * @return array
-	 */
-	public static function getBehavior($behavior, TableMap $tableMap)
-	{
-		$behaviors = $tableMap->getBehaviors();
-		return (array) $behaviors[strtolower($behavior)];
-	}
-
 	public function getI18nBehavior()
 	{
-	    return $this->hasI18nBehavior() ? self::getBehavior('i18n', $this->tableMap) : null;
-	}
-
-	/**
-	 * Return true if $tableMap has the specified behavior; false otherwise
-	 * @param string $behavior
-	 * @param TableMap $tableMap
-	 * @return boolean
-	 */
-	public static function hasBehavior($behavior, TableMap $tableMap)
-	{
-	    //trace(__METHOD__);
-	    //trace($tableMap->getBehaviors());
-	    return in_array(strtolower($behavior), array_keys($tableMap->getBehaviors()));
+	    return $this->hasI18nBehavior() ? Silva_Propel::getBehavior('i18n', $this->tableMap) : null;
 	}
 
 	/**
@@ -270,12 +245,10 @@ abstract class Silva_View_BaseModel extends Silva_View
 	 */
 	public function hasI18nBehavior()
 	{
-	    //trace(__METHOD__);
 	    if ($this->hasI18nBehavior === null) {
-	        $this->hasI18nBehavior = self::hasBehavior('i18n', $this->tableMap);
+	        $this->hasI18nBehavior = Silva_Propel::hasBehavior('i18n', $this->tableMap);
 	    }
 
-	    //trace($this->hasI18nBehavior);
 	    return $this->hasI18nBehavior;
 	}
 
@@ -292,17 +265,6 @@ abstract class Silva_View_BaseModel extends Silva_View
 	    }
 	    //trace($this->i18nTableMap);
 	    return $this->i18nTableMap;
-	}
-
-	/**
-	 * Return the I18n ColumnMap objects for the specified $tableMap
-	 * @param TableMap $tableMap
-	 * @return array A ColumnMap[] of I18n columns.
-	 */
-	public static function getI18nColumns($tableMap)
-	{
-		$i18nTablename = "{$tableMap->getPhpName()}I18n";
-		return PropelQuery::from($i18nTablename)->getTableMap()->getColumns();
 	}
 
 	// override
