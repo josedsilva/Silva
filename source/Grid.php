@@ -210,10 +210,49 @@ class Silva_Grid extends Curry_Flexigrid_Propel
         $callback = create_function('$o', "return " . __CLASS__ . "::getThumbnailHtml(\$o->{$getter}, $twd, $tht, '{$this->id}');");
         $this->setColumnCallback($column, $callback);
     }
+    
+    /**
+     * Show thumbnail for a column in this model.
+     * @param $column
+     * @param $display
+     * @param $twd
+     * @param $tht
+     */
+    public function setThumbnail($column, $display = null, $twd = 50, $tht = 50)
+    {
+    	if ($display === null) {
+    		$display = ucwords(str_replace("_", " ", $column));
+    	}
+    	
+    	$getter = str_replace(" ", '', ucwords(str_replace("_", " ", $column)));
+    	$getter = "get{$getter}()";
+    	$this->addThumbnail($column, $display, $getter, $twd, $tht);
+    }
 
+    /**
+     * Add a raw column (non-escaped contents) to the grid.
+     * @param $column
+     * @param $display
+     * @param $columnOptions
+     */
     public function addRawColumn($column, $display, array $columnOptions = array())
     {
         $this->addColumn($column, $display, array_merge(array('sortable' => false, 'escape' => false), $columnOptions));
+    }
+    
+    /**
+     * Convert an existing column to raw.
+     * @param $column
+     * @param $display
+     * @param $columnOptions
+     */
+    public function setRawColumn($column, $display = null, array $columnOptions = array())
+    {
+    	if ($display === null) {
+    		$display = ucwords(str_replace("_", " ", $column));
+    	}
+    	
+    	$this->addRawColumn($column, $display, $columnOptions);
     }
 
     /**
