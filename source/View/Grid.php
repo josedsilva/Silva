@@ -19,9 +19,9 @@
 /**
  * Define a grid view showing a collection of tuples
  *
- * @category	Curry
- * @package		Silva
- * @author		Jose Francisco D'Silva
+ * @category    Curry
+ * @package     Silva
+ * @author      Jose Francisco D'Silva
  * @version
  *
  */

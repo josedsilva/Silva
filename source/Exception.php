@@ -17,10 +17,10 @@
  *
  */
 /**
- * @category   Curry
- * @package    Silva
- * @author     Jose Francisco D'Silva
- * @version    $Id: Exception.php $
+ * @category    Curry
+ * @package     Silva
+ * @author      Jose Francisco D'Silva
+ * @version     $Id: Exception.php $
  */
 class Silva_Exception extends Zend_Exception
 {

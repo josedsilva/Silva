@@ -26,10 +26,10 @@
  * Can ignore foreign keys while creating form elements or automagically create and populate dropdowns with fk values
  * Can ignore columns for unwanted propel behaviors when creating form elements
  *
- * @category Curry
- * @package Silva
- * @version 2.0.0
- * @author Tobias Alex Peterson, Jose Francisco D'Silva
+ * @category    Curry
+ * @package     Silva
+ * @version     2.0.0
+ * @author      Tobias Alex Peterson, Jose Francisco D'Silva
  */
 class Silva_Form extends Curry_Form
 {

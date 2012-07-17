@@ -19,9 +19,9 @@
 /**
  * Abstract class for a Curry_Backend view.
  *
- * @category	Curry
- * @package		Silva
- * @author		Jose Francisco D'Silva
+ * @category    Curry
+ * @package     Silva
+ * @author      Jose Francisco D'Silva
  * @version
  *
  */

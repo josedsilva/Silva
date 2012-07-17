@@ -19,9 +19,9 @@
 /**
  * Abstract class for a Curry_Backend view associated with a model.
  *
- * @category	Curry
- * @package		Silva
- * @author		Jose Francisco D'Silva
+ * @category    Curry
+ * @package     Silva
+ * @author      Jose Francisco D'Silva
  * @version
  *
  */
@@ -44,10 +44,6 @@ abstract class Silva_View_BaseModel extends Silva_View
         'appendSubmitButton' => true,
         // whether to automagically build form from the TableMap?
         'autoBuildForm' => false,
-        // whether get[TablePhpName]Form() callback must be made when "autoBuildForm" is true?
-        'getFormCallback' => true,
-        // whether save[TablePhpName]() callback must be made when "autoBuildForm" is true?
-        'saveCallback' => true,
         // whether empty value is substituted by the default locale's content when "autoBuildForm" is edited?
         'useDefaultLocaleOnEmptyValue' => false,
         // whether to use custom Curry_Form_Elements?
@@ -83,8 +79,6 @@ abstract class Silva_View_BaseModel extends Silva_View
     {
         parent::extendOptions($options);
         if (! $this->options['autoBuildForm']) {
-            $this->options['getFormCallback'] = true;
-            $this->options['saveCallback'] = true;
             $this->options['useCustomFormElements'] = false;
             $this->options['useDefaultLocaleOnEmptyValue'] = false;
         }
@@ -343,15 +337,11 @@ abstract class Silva_View_BaseModel extends Silva_View
     {
         if ($this->options['autoBuildForm']) {
             $silvaForm = $this->getSilvaForm($activeRecord, array($this->getPkName() => $this->tableHasCompositePk() ? serialize($activeRecord->getPrimaryKey()) : $activeRecord->getPrimaryKey()));
-            if ($this->options['getFormCallback']) {
-                $cbFormHandler = "get{$this->getTablename()}Form";
-                if (! method_exists($this->backend, $cbFormHandler)) {
-                    throw new Silva_Exception("Callback ($cbFormHandler) not defined in " . get_class($this->backend));
-                }
-
-                $form = call_user_func(array($this->backend, $cbFormHandler), $activeRecord, $silvaForm);
+            $cbFormHandler = "get{$this->getTablename()}Form";
+            if (method_exists($this->backend, $cbFormHandler)) {
+            	$form = call_user_func(array($this->backend, $cbFormHandler), $activeRecord, $silvaForm);
             } else {
-                $form = $silvaForm;
+            	$form = $silvaForm;
             }
         } else {
             // partial form
@@ -373,22 +363,24 @@ abstract class Silva_View_BaseModel extends Silva_View
 
     protected function saveActiveRecord($activeRecord, $form)
     {
-        if ($this->options['autoBuildForm']) {
-            // automagically populate known columns from form fields
-            $form->fillModel($activeRecord);
-            // ignore save handler?
-            if (! $this->options['saveCallback']) {
+        $cbSaveHandler = "save{$this->getTablename()}";
+        if (method_exists($this->backend, $cbSaveHandler)) {
+            if ($this->options['autoBuildForm']) {
+                // populate known columns from fields
+                $form->fillModel($activeRecord);
+            }
+            
+            $ret = call_user_func(array($this->backend, $cbSaveHandler), $activeRecord, (array) $form->getValues());
+        } else {
+            if ($this->options['autoBuildForm']) {
+                $form->fillModel($activeRecord);
                 $activeRecord->save();
                 return ''; //close popup
+            } else {
+                throw new Silva_Exception("Callback ($cbSaveHandler) not defined in " . get_class($this->backend));
             }
         }
-
-        $cbSaveHandler = "save{$this->getTablename()}";
-        if (! method_exists($this->backend, $cbSaveHandler)) {
-            throw new Silva_Exception("Callback ($cbSaveHandler) not defined in " . get_class($this->backend));
-        }
-
-        $ret = call_user_func(array($this->backend, $cbSaveHandler), $activeRecord, (array) $form->getValues());
+        
         return (($ret === null) ? '' : $ret);
     }
 

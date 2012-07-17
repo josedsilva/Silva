@@ -19,9 +19,9 @@
 /**
  * Base class for Curry_Backend modules using the event driven interface.
  *
- * @category	Curry
- * @package		Silva
- * @author		Jose Francisco D'Silva
+ * @category    Curry
+ * @package     Silva
+ * @author      Jose Francisco D'Silva
  * @version
  *
  */

@@ -19,9 +19,9 @@
 /**
  * Wrapper class for Curry_Flexigrid_Propel
  *
- * @category	Curry
- * @package		Silva
- * @author		Jose Francisco D'Silva
+ * @category    Curry
+ * @package     Silva
+ * @author      Jose Francisco D'Silva
  * @version
  *
  */
