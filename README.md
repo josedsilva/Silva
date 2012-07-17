@@ -32,8 +32,6 @@ class Project_Backend_Products extends Silva_Backend
   {
     $sv = new Silva_View_Grid('ProductCat', null, $this, array(
       'autoBuildForm' => true,
-      'getFormCallback' => false,
-      'saveCallback' => false,
     ));
     $sv->setBreadcrumbText('Categories');
     return $sv;
@@ -58,8 +56,6 @@ class Project_Backend_Products extends Silva_Backend
   {
     $sv = new Silva_View_Grid('Product', 'ProductCat', $this, array(
       'autoBuildForm' => true,
-      'getFormCallback' => false,
-      'saveCallback' => false,
     ));
     
     return $sv;
