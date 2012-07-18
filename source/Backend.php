@@ -309,7 +309,7 @@ abstract class Silva_Backend extends Curry_Backend
             return;
         }
 
-        $gridHandler = "get{$sv->getTablename()}Grid";
+        $gridHandler = str_replace('%TABLENAME%', $sv->getTablename(), Silva_View::EVENT_ON_GRID_RENDER);
         if (method_exists($this, $gridHandler)) {
             $grid = call_user_func_array(array($this, $gridHandler), array(&$sv));
             return $grid;

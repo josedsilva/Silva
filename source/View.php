@@ -94,6 +94,23 @@ abstract class Silva_View
     /**#@-*/
 
     const DEFAULT_CONTENT_TYPE = self::CONTENT_TEXT;
+    
+    /**#@+
+     * @category View event
+     */
+    /** Event triggered when grid is about to be displayed */
+    const EVENT_ON_GRID_RENDER = 'on%TABLENAME%GridRender';
+    /** Event triggered on ajax json request, such as clicking the Delete button */
+    const EVENT_ON_JSON = 'on%TABLENAME%Json';
+    /** Event triggered when form is about to be rendered */
+    const EVENT_ON_FORM_RENDER = 'on%TABLENAME%FormRender';
+    /** Event triggered when form data is validated and is about to be saved */
+    const EVENT_ON_SAVE = 'on%TABLENAME%Save';
+    /** Event triggered when CSV file is uploaded and requires user to parse it */
+    const EVENT_ON_IMPORT_CSV = 'on%TABLENAME%ImportCsv';
+    /** Event triggered when user has to supply data to the Csv export handler */
+    const EVENT_ON_EXPORT_CSV = 'on%TABLENAME%ExportCsv';
+    /**#@-*/
 
     /**
      * Breadcrumb text

@@ -46,14 +46,12 @@ abstract class Silva_View_BaseModel extends Silva_View
         'autoBuildForm' => false,
         // whether empty value is substituted by the default locale's content when "autoBuildForm" is edited?
         'useDefaultLocaleOnEmptyValue' => false,
-        // whether to use custom Curry_Form_Elements?
-        'useCustomFormElements' => false,
         // whether to ignore foreign keys when auto building forms?
         'ignoreForeignKeys' => false,
         // whether to ignore primary keys when auto building forms?
         'ignorePrimaryKeys' => true,
     );
-
+    
     /**
      * Instantiate a view object.
      *
@@ -79,7 +77,6 @@ abstract class Silva_View_BaseModel extends Silva_View
     {
         parent::extendOptions($options);
         if (! $this->options['autoBuildForm']) {
-            $this->options['useCustomFormElements'] = false;
             $this->options['useDefaultLocaleOnEmptyValue'] = false;
         }
     }
@@ -335,9 +332,9 @@ abstract class Silva_View_BaseModel extends Silva_View
 
     protected function getActiveRecordForm($activeRecord)
     {
+        $cbFormHandler = str_replace('%TABLENAME%', $this->getTablename(), self::EVENT_ON_FORM_RENDER);
         if ($this->options['autoBuildForm']) {
             $silvaForm = $this->getSilvaForm($activeRecord, array($this->getPkName() => $this->tableHasCompositePk() ? serialize($activeRecord->getPrimaryKey()) : $activeRecord->getPrimaryKey()));
-            $cbFormHandler = "get{$this->getTablename()}Form";
             if (method_exists($this->backend, $cbFormHandler)) {
             	$form = call_user_func(array($this->backend, $cbFormHandler), $activeRecord, $silvaForm);
             } else {
@@ -345,7 +342,6 @@ abstract class Silva_View_BaseModel extends Silva_View
             }
         } else {
             // partial form
-            $cbFormHandler = "get{$this->getTablename()}Form";
             if (! method_exists($this->backend, $cbFormHandler)) {
                 throw new Silva_Exception("Callback ($cbFormHandler) not defined in " . get_class($this->backend));
             }
@@ -363,7 +359,7 @@ abstract class Silva_View_BaseModel extends Silva_View
 
     protected function saveActiveRecord($activeRecord, $form)
     {
-        $cbSaveHandler = "save{$this->getTablename()}";
+        $cbSaveHandler = str_replace('%TABLENAME%', $this->getTablename(), self::EVENT_ON_SAVE);
         if (method_exists($this->backend, $cbSaveHandler)) {
             if ($this->options['autoBuildForm']) {
                 // populate known columns from fields
@@ -409,7 +405,6 @@ abstract class Silva_View_BaseModel extends Silva_View
         $sf = new Silva_Form($this->tableMap, $this->backend);
         $sf->setAction(url('', $_GET)->add($actionQuery))->setAttrib('class', 'dialog-form');
         $sf->setUseDefaultLocaleOnEmptyValue($this->options['useDefaultLocaleOnEmptyValue']);
-        $sf->setUseCustomFormElements($this->options['useCustomFormElements']);
         $sf->setIgnoreFks($this->options['ignoreForeignKeys']);
         $sf->setIgnorePks($this->options['ignorePrimaryKeys']);
         $sf->setLocale($this->locale);

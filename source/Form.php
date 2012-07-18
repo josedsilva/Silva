@@ -39,7 +39,7 @@ class Silva_Form extends Curry_Form
     protected $backend = null;
 
     /**#@+
-     * configs
+     * Form configuration
      */
 
     /**
@@ -58,11 +58,6 @@ class Silva_Form extends Curry_Form
      */
     protected $ignoreFks = true;
     /**
-     * whether custom Curry_Form elements (like previewImage, filebrowser, etc.) be used instead of defaults?
-     * @var boolean
-     */
-    protected $useCustomFormElements = false;
-    /**
      * What columns to ignore when creating the form?
      * Columns created by these behaviors are ignored.
      * @var array
@@ -72,15 +67,21 @@ class Silva_Form extends Curry_Form
     	'timestampable' => array('create_column', 'update_column'),
     	// buggy (as of propel 1.6.4):
     	// propel does not permit adding a behavior of the same name multiple times in a table.
-    	// @todo please update when issue is fixed.
+    	// FIXME please update when issue is fixed.
     	'aggregate_column' => array('name'),
     );
     /**#@-*/
 
+    /**#@+
+     * @category Form event
+     */
+    /** After form is initialized */
+    const EVENT_ON_FORM_CREATE = 'onFormCreate';
     /** Before form elements are created */
-    const CB_ON_CREATE_FORM_ELEMENTS = 'onCreateFormElements';
-    /** When form element for a column is being created */
-    const CB_GET_CUSTOM_FORM_ELEMENT = 'getCustomFormElement';
+    const EVENT_ON_FORM_ELEMENTS_CREATE = 'on%TABLENAME%FormElementsCreate';
+    /**#@-*/
+    
+    protected $colElmMap = null;
 
     /**
      * Create a Zend form.
@@ -245,16 +246,6 @@ class Silva_Form extends Curry_Form
         return $this->useDefaultLocaleOnEmptyValue;
     }
 
-    public function setUseCustomFormElements($value)
-    {
-        $this->useCustomFormElements = (boolean) $value;
-    }
-
-    public function getUseCustomFormElements()
-    {
-        return $this->useCustomFormElements;
-    }
-
     /**
      * Add more behaviors and their columns to the ignore list.
      * @param array $ignoreBehaviors
@@ -282,22 +273,40 @@ class Silva_Form extends Curry_Form
      */
     public function createElementFromColumn(ColumnMap $column)
     {
-        if ($this->useCustomFormElements) {
-            $element = null;
-            if (method_exists($this->backend, self::CB_GET_CUSTOM_FORM_ELEMENT)) {
-                $element = call_user_func(array($this->backend, self::CB_GET_CUSTOM_FORM_ELEMENT), $this, $column->getPhpName());
-                if ($element) {
+        // create default element options
+        $defaultOptions = array(
+            'label' => ucfirst(strtolower(str_replace("_", " ", $column->getName()))),
+            'required' => $column->isNotNull(),
+        );
+        
+        $element = null;
+        
+        if (is_array($this->colElmMap) && (($elm = $this->colElmMap[$column->getPhpName()]) !== null) ) {
+            if (is_string($elm)) {
+                // user-defined Curry_Form_Element
+                $element = $this->createElement($elm, strtolower($column->getName()));
+            } elseif (is_array($elm)) {
+                // could be either:
+                // 1. Curry_Form_Element with user-defined array of attributes
+                // 2. Default element with user-defined array of attributes
+                $tmp = array_shift($elm);
+                if (is_string($tmp)) {
+                    // user-defined Curry_Form_Element with user-defined attributes
+                    $element = $this->createElement($tmp, strtolower($column->getName()), Curry_Array::extend($defaultOptions, array_pop($elm)));
                     return $element;
+                } elseif (is_array($tmp)) {
+                    // default element with user-defined options
+                    $defaultOptions = Curry_Array::extend($defaultOptions, $tmp);
                 }
             }
         }
-
+        
         // create select dropdown for foreign-key column.
-        if ($column->isForeignKey()) {
+        if (($element === null) && $column->isForeignKey()) {
             $element = $this->createElement('select', strtolower($column->getName()), array(
                 'multiOptions' => self::getMultiOptionsForFk($column, $this->locale)
             ));
-        } else {
+        } elseif ($element === null) {
             switch ($column->getType()) {
                 case PropelColumnTypes::LONGVARCHAR:
                     $element = $this->createElement('textarea', strtolower($column->getName()));
@@ -329,9 +338,8 @@ class Silva_Form extends Curry_Form
                     break;
             }
         }
-
-        $element->setLabel(ucfirst(strtolower(str_replace("_", " ", $column->getName()))));
-        $element->setRequired($column->isNotNull());
+        
+        $element->setOptions($defaultOptions);
         return $element;
     }
 
@@ -462,6 +470,19 @@ class Silva_Form extends Curry_Form
 
         return $columns;
     }
+    
+    protected function preCreateElements()
+    {
+        if (method_exists($this->backend, self::EVENT_ON_FORM_CREATE)) {
+            call_user_func_array(array($this->backend, self::EVENT_ON_FORM_CREATE), array(&$this));
+        }
+        
+        // the get[Tablename]ColumnElementMap
+        $colElmMapGetter = str_replace('%TABLENAME%', $this->getTablename(), self::EVENT_ON_FORM_ELEMENTS_CREATE);
+        if (method_exists($this->backend, $colElmMapGetter)) {
+            $this->colElmMap = call_user_func(array($this->backend, $colElmMapGetter));
+        }
+    }
 
     /**
      * Construct form elements.
@@ -469,9 +490,7 @@ class Silva_Form extends Curry_Form
      */
     public function createElements()
     {
-        if (method_exists($this->backend, self::CB_ON_CREATE_FORM_ELEMENTS)) {
-            $ret = call_user_func_array(array($this->backend, self::CB_ON_CREATE_FORM_ELEMENTS), array(&$this));
-        }
+        $this->preCreateElements();
 
         foreach ($this->getElementColumns() as $column) {
             if ( ($column->isPrimaryKey && $this->ignorePks) || ($column->isForeignKey() && $this->ignoreFks) ) {
