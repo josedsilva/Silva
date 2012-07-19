@@ -71,15 +71,6 @@ class Silva_Form extends Curry_Form
     	'aggregate_column' => array('name'),
     );
     /**#@-*/
-
-    /**#@+
-     * @category Form event
-     */
-    /** After form is initialized */
-    const EVENT_ON_FORM_CREATE = 'onFormCreate';
-    /** Before form elements are created */
-    const EVENT_ON_FORM_ELEMENTS_CREATE = 'on%TABLENAME%FormElementsCreate';
-    /**#@-*/
     
     protected $colElmMap = null;
 
@@ -287,16 +278,15 @@ class Silva_Form extends Curry_Form
                 $element = $this->createElement($elm, strtolower($column->getName()));
             } elseif (is_array($elm)) {
                 // could be either:
-                // 1. Curry_Form_Element with user-defined array of attributes
-                // 2. Default element with user-defined array of attributes
-                $tmp = array_shift($elm);
-                if (is_string($tmp)) {
-                    // user-defined Curry_Form_Element with user-defined attributes
-                    $element = $this->createElement($tmp, strtolower($column->getName()), Curry_Array::extend($defaultOptions, array_pop($elm)));
-                    return $element;
-                } elseif (is_array($tmp)) {
-                    // default element with user-defined options
-                    $defaultOptions = Curry_Array::extend($defaultOptions, $tmp);
+                // 1. Curry_Form_Element with array of user-defined options
+                // 2. array of user-defined options
+                reset($elm);
+                if (is_int(key($elm))) {
+                    // case 1.
+                    return $this->createElement(array_shift($elm), strtolower($column->getName()), Curry_Array::extend($defaultOptions, array_pop($elm)));
+                } else {
+                    // case 2.
+                    $defaultOptions = Curry_Array::extend($defaultOptions, $elm);
                 }
             }
         }
@@ -357,10 +347,11 @@ class Silva_Form extends Curry_Form
         }
         $objs = $q->find();
         // FIXME null translates to 0 (zero). Should we keep -1 instead?
-        $list = array(null => "[-- Select {$foreignTablename}s --]");
+        $list = array(null => "[-- Select {$foreignTablename} --]");
         foreach ($objs as $obj) {
             $list[$obj->getPrimaryKey()] = method_exists($obj, '__toString') ? $obj->__toString() : Zend_Json::prettyPrint(Zend_Json::encode($obj->toArray()), array('indent' => ' '));
         }
+        
         return $list;
     }
         /*public function createElementFromRelation(RelationMap $relation)
@@ -473,14 +464,8 @@ class Silva_Form extends Curry_Form
     
     protected function preCreateElements()
     {
-        if (method_exists($this->backend, self::EVENT_ON_FORM_CREATE)) {
-            call_user_func_array(array($this->backend, self::EVENT_ON_FORM_CREATE), array(&$this));
-        }
-        
-        // the get[Tablename]ColumnElementMap
-        $colElmMapGetter = str_replace('%TABLENAME%', $this->getTablename(), self::EVENT_ON_FORM_ELEMENTS_CREATE);
-        if (method_exists($this->backend, $colElmMapGetter)) {
-            $this->colElmMap = call_user_func(array($this->backend, $colElmMapGetter));
+        if (method_exists($this->backend, Silva_Event::EVENT_ON_FORM_ELEMENTS_INIT)) {
+            $this->colElmMap = call_user_func_array(array($this->backend, Silva_Event::EVENT_ON_FORM_ELEMENTS_INIT), array(&$this));
         }
     }
 

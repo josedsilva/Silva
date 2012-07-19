@@ -1,9 +1,9 @@
 Silva
 =====
 
-Library for rapid development of Bombayworks Curry CMS backend modules.
+A library for rapid development of Bombayworks Curry cms backend modules.
 ___
-Category: Curry CMS   
+Category: Curry
 Organization: [Bombayworks](http://bombayworks.se)   
 Author: Jose Francisco D'Silva
 ___
@@ -37,7 +37,7 @@ class Project_Backend_Products extends Silva_Backend
     return $sv;
   }
 
-  protected function getProductCatGrid(Silva_View $sv)
+  public function onProductCatGridInit(Silva_View $sv)
   {
     $sv->setDescription("Manage product categories.");
 
@@ -64,3 +64,4 @@ class Project_Backend_Products extends Silva_Backend
 }
 ```
 
+> Documentation available on the [Wiki](https://github.com/josedsilva/Silva/wiki)

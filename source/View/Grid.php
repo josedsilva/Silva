@@ -377,7 +377,7 @@ class Silva_View_Grid extends Silva_View_BaseModel
         }
 
         if (isset($_GET['json'])) {
-            $jsonHook = str_replace('%TABLENAME%', $this->getTablename(), self::EVENT_ON_JSON);
+            $jsonHook = str_replace('%TABLENAME%', $this->getTablename(), Silva_Event::EVENT_ON_JSON);
             if (method_exists($this->backend, $jsonHook)) {
                 call_user_func(array($this->backend, $jsonHook));
             } else {
@@ -432,7 +432,7 @@ class Silva_View_Grid extends Silva_View_BaseModel
      */
     public function exportCsv()
     {
-        $cbFunc = str_replace('%TABLENAME%', $this->getTablename(), self::EVENT_ON_EXPORT_CSV);
+        $cbFunc = str_replace('%TABLENAME%', $this->getTablename(), Silva_Event::EVENT_ON_EXPORT_CSV);
         if (! method_exists($this->backend, $cbFunc)) {
             throw new Silva_Exception("Callback ($cbFunc) not defined in " . get_class($this->backend));
         }
@@ -479,7 +479,7 @@ class Silva_View_Grid extends Silva_View_BaseModel
         $form = self::getImportCsvForm();
         if (isPost() && $form->isValid($_POST)) {
             $values = $form->getValues();
-            $cbFunc = str_replace('%TABLENAME%', $this->getTablename(), self::EVENT_ON_IMPORT_CSV);
+            $cbFunc = str_replace('%TABLENAME%', $this->getTablename(), Silva_Event::EVENT_ON_IMPORT_CSV);
             if (! method_exists($this->backend, $cbFunc)) {
                 throw new Silva_Exception("Callback ($cbFunc) not defined in " . get_class($this->backend));
             }

@@ -332,7 +332,7 @@ abstract class Silva_View_BaseModel extends Silva_View
 
     protected function getActiveRecordForm($activeRecord)
     {
-        $cbFormHandler = str_replace('%TABLENAME%', $this->getTablename(), self::EVENT_ON_FORM_RENDER);
+        $cbFormHandler = str_replace('%TABLENAME%', $this->getTablename(), Silva_Event::EVENT_ON_SHOW_FORM);
         if ($this->options['autoBuildForm']) {
             $silvaForm = $this->getSilvaForm($activeRecord, array($this->getPkName() => $this->tableHasCompositePk() ? serialize($activeRecord->getPrimaryKey()) : $activeRecord->getPrimaryKey()));
             if (method_exists($this->backend, $cbFormHandler)) {
@@ -359,7 +359,7 @@ abstract class Silva_View_BaseModel extends Silva_View
 
     protected function saveActiveRecord($activeRecord, $form)
     {
-        $cbSaveHandler = str_replace('%TABLENAME%', $this->getTablename(), self::EVENT_ON_SAVE);
+        $cbSaveHandler = str_replace('%TABLENAME%', $this->getTablename(), Silva_Event::EVENT_ON_SAVE);
         if (method_exists($this->backend, $cbSaveHandler)) {
             if ($this->options['autoBuildForm']) {
                 // populate known columns from fields
