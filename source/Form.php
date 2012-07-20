@@ -298,8 +298,11 @@ class Silva_Form extends Curry_Form
             ));
         } elseif ($element === null) {
             switch ($column->getType()) {
+                case PropelColumnTypes::PHP_ARRAY:
                 case PropelColumnTypes::LONGVARCHAR:
-                    $element = $this->createElement('textarea', strtolower($column->getName()));
+                    $element = $this->createElement('textarea', strtolower($column->getName()), array(
+                        'rows' => 10,
+                    ));
                     break;
                 case PropelColumnTypes::DATE:
                     $element = $this->createElement('date', strtolower($column->getName()));
