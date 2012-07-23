@@ -243,8 +243,7 @@ class Silva_Form extends Curry_Form
      * NOTE: behavior and column names are specified in "lowercase characters separated by underscores"
      *  
      * @param array $behaviorsOrColumns
-     * @example $form->ignoreColumns("sluggable");
-     * @example $form->ignoreColumns("user_comment");
+     * @example $form->ignoreColumns(array("sluggable" => array('slug_column'), "user_comment"));
      */
     public function ignoreColumns(array $behaviorsOrColumns)
     {
@@ -256,7 +255,7 @@ class Silva_Form extends Curry_Form
      * The column will appear as a form element.
      * 
      * @param string $behaviorOrColumn
-     * @example $form->removeIgnoreColumn("timestampable"); // show, as form fields, columns created by the "timestampable" behavior
+     * @example $form->removeIgnoredColumn("timestampable"); // show, as form fields, columns created by the "timestampable" behavior
      * @example $form->removeIgnoredColumn("user_comment"); // show, as form field, the "user_comment" column
      */
     public function removeIgnoredColumn($behaviorOrColumn)

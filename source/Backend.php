@@ -226,8 +226,8 @@ abstract class Silva_Backend extends Curry_Backend
             if (method_exists($this, $viewHandler)) {
                 // user-defined handler has higher precedence
                 call_user_func(array($this, $viewHandler));
-            } elseif (strpos($viewHandler, "showMain") !== false) {
-                // execute showMainXXXX handler
+            } elseif (in_array($viewname, array_keys($this->viewMap))) {
+                // execute view handler
                 $this->defaultViewHandler();
             } elseif (in_array($viewname, array_keys($this->tableViewMap))) {
                 // editModel view handler should have the same name as the model to edit
