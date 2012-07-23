@@ -62,7 +62,7 @@ class Silva_Form extends Curry_Form
      * Columns created by these behaviors are ignored.
      * @var array
      */
-    protected $ignoreColumns = array(
+    protected $ignoredColumns = array(
     	'sortable' => array('rank_column'),
     	'timestampable' => array('create_column', 'update_column'),
     	// buggy (as of propel 1.6.4):
@@ -238,21 +238,34 @@ class Silva_Form extends Curry_Form
     }
 
     /**
-     * Add more behaviors and their columns to the ignore list.
-     * @param array $ignoreBehaviors
+     * Add behaviors and columns to the ignored list.
+     * These columns will be ignored when form elements are created.
+     * NOTE: behavior and column names are specified in "lowercase characters separated by underscores"
+     *  
+     * @param array $behaviorsOrColumns
+     * @example $form->ignoreColumns("sluggable");
+     * @example $form->ignoreColumns("user_comment");
      */
-    public function addIgnoreColumns(array $ignoreBehaviors)
+    public function ignoreColumns(array $behaviorsOrColumns)
     {
-        $this->ignoreColumns = array_merge($this->ignoreColumns, $ignoreBehaviors);
+        Curry_Array::extend($this->ignoredColumns, $behaviorsOrColumns);
     }
 
     /**
-     * Remove ignored $behavior from ignored columns list.
-     * @param string $behavior
+     * Remove a column or behavior from the ignored columns set.
+     * The column will appear as a form element.
+     * 
+     * @param string $behaviorOrColumn
+     * @example $form->removeIgnoreColumn("timestampable"); // show, as form fields, columns created by the "timestampable" behavior
+     * @example $form->removeIgnoredColumn("user_comment"); // show, as form field, the "user_comment" column
      */
-    public function removeIgnoreColumn($behavior)
+    public function removeIgnoredColumn($behaviorOrColumn)
     {
-        unset($this->ignoreColumns[$behavior]);
+        if (array_key_exists($behaviorOrColumn, $this->ignoredColumns)) {
+            unset($this->ignoredColumns[$behaviorOrColumn]);
+        } elseif ( ($key = array_search($behaviorOrColumn, $this->ignoredColumns)) !== false) {
+            unset($this->ignoredColumns[$key]);
+        }
     }
 
     /**
@@ -400,18 +413,22 @@ class Silva_Form extends Curry_Form
      * Return an array containing the actual column names to ignore.
      * @return array
      */
-    protected function getIgnoreColumns()
+    protected function getIgnoredColumns()
     {
         $columns = array();
-        if (! empty($this->ignoreColumns)) {
+        if (! empty($this->ignoredColumns)) {
             $behaviors = $this->tableMap->getBehaviors();
-            foreach ($this->ignoreColumns as $behavior => $igcols) {
-                if (array_key_exists($behavior, $behaviors)) {
+            foreach ($this->ignoredColumns as $behavior => $igcols) {
+                if (is_int($behavior)) {
+                    // this is a column_name
+                    $columns[] = $igcols;
+                } elseif (array_key_exists($behavior, $behaviors)) {
+                    // this is a behavior
                     foreach ($igcols as $igcol) {
                         $fields = $behaviors[$behavior][$igcol];
                         // aggregate_column behavior separates fields by comma
                         // (the fix by jose.dsilva@bombayworks.se)
-                        // @todo please update when propelorm.org has a better solution
+                        // FIXME please update when propelorm.org has a better solution
                         $fields = array_map("trim", explode(',', $fields));
                         $columns = array_merge($columns, $fields);
                     }
@@ -426,12 +443,12 @@ class Silva_Form extends Curry_Form
      * Return an array of ColumnMap objects for this table
      * that will be used in constructing form elements.
      *
-     * @return array (Array[form-field-name] = ColumnMap)
+     * @return array (Array[form_field_name] = ColumnMap)
      */
     protected function getElementColumns()
     {
         $columns = array();
-        $ignoreColumns = $this->getIgnoreColumns();
+        $ignoredColumns = $this->getIgnoredColumns();
         foreach ($this->tableMap->getColumns() as $column) {
             // whether to skip primary and foreign keys?
             if ( ($column->isPrimaryKey() && $this->ignorePks) || ($column->isForeignKey() && $this->ignoreFks) ) {
@@ -440,7 +457,7 @@ class Silva_Form extends Curry_Form
 
             $fieldName = strtolower($column->getName());
             // whether to ignore this column?
-            if (in_array($fieldName, $ignoreColumns)) {
+            if (in_array($fieldName, $ignoredColumns)) {
                 continue;
             }
 
