@@ -283,11 +283,17 @@ class Silva_Form extends Curry_Form
         );
         
         $element = null;
+        $fieldName = strtolower($column->getName());
+        // tinyMCE fix
+        if ($fieldName == 'content') {
+            // FIXME strtolower($this->tableMap->getName()) is not required since $this->tableMap->getName() returns a lowercase-underscore-name
+            $fieldName = strtolower($this->tableMap->getName()) . '_content';
+        }
         
         if (is_array($this->colElmMap) && (($elm = $this->colElmMap[$column->getPhpName()]) !== null) ) {
             if (is_string($elm)) {
                 // user-defined Curry_Form_Element
-                $element = $this->createElement($elm, strtolower($column->getName()));
+                $element = $this->createElement($elm, $fieldName);
             } elseif (is_array($elm)) {
                 // could be either:
                 // 1. Curry_Form_Element with array of user-defined options
@@ -295,7 +301,7 @@ class Silva_Form extends Curry_Form
                 reset($elm);
                 if (is_int(key($elm))) {
                     // case 1.
-                    return $this->createElement(array_shift($elm), strtolower($column->getName()), Curry_Array::extend($defaultOptions, array_pop($elm)));
+                    return $this->createElement(array_shift($elm), $fieldName, Curry_Array::extend($defaultOptions, array_pop($elm)));
                 } else {
                     // case 2.
                     $defaultOptions = Curry_Array::extend($defaultOptions, $elm);
@@ -305,29 +311,29 @@ class Silva_Form extends Curry_Form
         
         // create select dropdown for foreign-key column.
         if (($element === null) && $column->isForeignKey()) {
-            $element = $this->createElement('select', strtolower($column->getName()), array(
+            $element = $this->createElement('select', $fieldName, array(
                 'multiOptions' => self::getMultiOptionsForFk($column, $this->locale)
             ));
         } elseif ($element === null) {
             switch ($column->getType()) {
                 case PropelColumnTypes::PHP_ARRAY:
                 case PropelColumnTypes::LONGVARCHAR:
-                    $element = $this->createElement('textarea', strtolower($column->getName()), array(
+                    $element = $this->createElement('textarea', $fieldName, array(
                         'rows' => 10,
                     ));
                     break;
                 case PropelColumnTypes::DATE:
-                    $element = $this->createElement('date', strtolower($column->getName()));
+                    $element = $this->createElement('date', $fieldName);
                     break;
                 case PropelColumnTypes::TIMESTAMP:
-                    $element = $this->createElement('dateTime', strtolower($column->getName()));
+                    $element = $this->createElement('dateTime', $fieldName);
                     $element->setDescription('Choose date from the DatePicker and time should be entered in HH:MM:SS format.');
                     break;
                 case PropelColumnTypes::BOOLEAN:
-                    $element = $this->createElement('checkbox', strtolower($column->getName()));
+                    $element = $this->createElement('checkbox', $fieldName);
                     break;
                 case PropelColumnTypes::ENUM:
-                    $element = $this->createElement('select', strtolower($column->getName()), array(
+                    $element = $this->createElement('select', $fieldName, array(
                         'multiOptions' => array_combine(
                             $column->getValueSet(),
                             array_map("ucfirst", $column->getValueSet())
@@ -339,7 +345,7 @@ class Silva_Form extends Curry_Form
                 case PropelColumnTypes::INTEGER:
                 case PropelColumnTypes::VARCHAR:
                 default:
-                    $element = $this->createElement('text', strtolower($column->getName()));
+                    $element = $this->createElement('text', $fieldName);
                     break;
             }
         }
@@ -459,7 +465,13 @@ class Silva_Form extends Curry_Form
             if (in_array($fieldName, $ignoredColumns)) {
                 continue;
             }
-
+            
+            // tinyMCE fix
+            if ($fieldName == 'content') {
+                // FIXME strtolower($this->tableMap->getName()) is not required since $this->tableMap->getName() returns a lowercase-underscore-name
+                $fieldName = strtolower($this->tableMap->getName()) . '_content';
+            }
+            
             $columns[$fieldName] = $column;
         }
 
