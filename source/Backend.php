@@ -292,7 +292,11 @@ abstract class Silva_Backend extends Curry_Backend
         }
 
         $this->handleGrid($sv);
-        $this->showBreadcrumbs();
+        
+        if (! $sv->getOption('manualBreadcrumbs')) {
+            $this->showBreadcrumbs();
+        }
+        
         $sv->render();
     }
 
@@ -303,7 +307,7 @@ abstract class Silva_Backend extends Curry_Backend
      * @param Silva_View $sv
      * @return Silva_Grid|null
      */
-    private function handleGrid(Silva_View $sv)
+    private function handleGrid(Silva_View &$sv)
     {
         if (! $sv->hasTable()) {
             return;

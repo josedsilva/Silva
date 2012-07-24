@@ -398,6 +398,9 @@ HTML;
             ),
         ));
     }
-
-
+    
+    public function getOption($key) {
+        return $this->options[$key];
+    }
+    
 } // Silva_View
