@@ -134,13 +134,22 @@ abstract class Silva_Backend extends Curry_Backend
 
     /**
      * Return the view object that was the first to be registered.
-     * This view object usually corresponds to the 'Main' view.
+     * This view object corresponds to the 'Main' view.
      * (this method will also reset the internal array pointer)
      * @return Silva_View
      */
     public function getFirstView()
     {
         return reset($this->viewMap);
+    }
+    
+    /**
+     * Return the active view object.
+     * @return Silva_View
+     */
+    public function getActiveView()
+    {
+        return $this->getViewByName($this->getActiveViewname());
     }
 
     /**
@@ -217,7 +226,7 @@ abstract class Silva_Backend extends Curry_Backend
     {
         try {
             $this->preShow();
-            $viewname = $this->getActiveView();
+            $viewname = $this->getActiveViewname();
             $viewHandler = "show{$viewname}";
             if ($this->options['showBreadcrumbs']) {
                 $this->pushView($viewname);
@@ -285,7 +294,7 @@ abstract class Silva_Backend extends Curry_Backend
      */
     protected function defaultViewHandler()
     {
-        $viewname = $this->getActiveView();
+        $viewname = $this->getActiveViewname();
         $sv = $this->getViewByName($viewname);
         if ($sv === null) {
             throw new Silva_Exception("show{$viewname} is undefined or view not registered.");
@@ -302,7 +311,7 @@ abstract class Silva_Backend extends Curry_Backend
 
     /**
      * Grid manipulation callback handler.
-     * Prototype: Silva_Grid get[Tablename]Grid(Silva_View &);
+     * Prototype: Silva_Grid on%TABLENAME%GridInit(Silva_View &$vw);
      *
      * @param Silva_View $sv
      * @return Silva_Grid|null
@@ -490,14 +499,14 @@ abstract class Silva_Backend extends Curry_Backend
      */
     protected function pushActiveView()
     {
-        $this->pushView($this->getActiveView());
+        $this->pushView($this->getActiveViewname());
     }
 
     /**
      * Return the current/active view name.
      * @return string
      */
-    protected function getActiveView()
+    protected function getActiveViewname()
     {
         $viewname = (isset($_GET[self::URL_QUERY_VIEW]) && !empty($_GET[self::URL_QUERY_VIEW])) ? $_GET[self::URL_QUERY_VIEW] : 'Main';
         return $viewname;
