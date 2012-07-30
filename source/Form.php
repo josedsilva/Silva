@@ -29,7 +29,7 @@
  * @category    Curry
  * @package     Silva
  * @version     2.0.0
- * @author      Tobias Alex Peterson, Jose Francisco D'Silva
+ * @author      Jose Francisco D'Silva
  */
 class Silva_Form extends Curry_Form
 {
@@ -73,6 +73,8 @@ class Silva_Form extends Curry_Form
     /**#@-*/
     
     protected $colElmMap = null;
+    
+    protected $arrayColumnGlue = ',';
 
     /**
      * Create a Zend form.
@@ -105,7 +107,6 @@ class Silva_Form extends Curry_Form
      * You need to manually save the model.
      *
      * @param BaseObject $instance
-     * @todo refactor code
      */
     public function fillModel($instance)
     {
@@ -113,9 +114,10 @@ class Silva_Form extends Curry_Form
         foreach ($this->getElementColumns() as $elname => $column) {
             if ($this->getElement($elname)) {
                 $val = $values[$elname];
-                if ($column->getType() === PropelColumnTypes::PHP_ARRAY) {
-                    $val = (array) explode(',', $val);
+                if ( ($column->getType() === PropelColumnTypes::PHP_ARRAY) && is_string($val)) {
+                    $val = (array) explode($this->arrayColumnGlue, $val);
                 }
+                
                 $instance->{"set{$column->getPhpName()}"}($val);
             }
         }
@@ -127,9 +129,10 @@ class Silva_Form extends Curry_Form
             foreach ($this->getI18nElementColumns() as $elname => $column) {
                 if ($subform->getElement($elname)) {
                     $val = $i18nValues[$elname];
-                    if ($column->getType() === PropelColumnTypes::PHP_ARRAY) {
-                        $val = (array) explode(',', $val);
+                    if ( ($column->getType() === PropelColumnTypes::PHP_ARRAY) && is_string($val)) {
+                        $val = (array) explode($this->arrayColumnGlue, $val);
                     }
+                    
                     $instance->{"set{$column->getPhpName()}"}($val);
                 }
             }
@@ -146,13 +149,13 @@ class Silva_Form extends Curry_Form
                 continue;
             }
 
-            $val = $instance->{"get{$column->getPhpName()}"}();
+            $value = $instance->{"get{$column->getPhpName()}"}();
             if ($column->getType() === PropelColumnTypes::PHP_ARRAY) {
-                $val = implode(',', (array) $val);
+                $value = implode($this->arrayColumnGlue, (array) $value);
             }
 
             $this->getElement($elname)
-                ->setValue($val);
+                ->setValue($value);
         }
 
         // populate i18n fields
@@ -170,9 +173,13 @@ class Silva_Form extends Curry_Form
                 }
 
                 $value = $instance->{"get{$column->getPhpName()}"}();
-                if ( empty($value) && $this->useDefaultLocaleOnEmptyValue && ($this->locale != $i18nProperties['default_locale']) ) {
+                if (empty($value) && $this->useDefaultLocaleOnEmptyValue && ($this->locale != $i18nProperties['default_locale'])) {
                     // NOTE: getTranslation() will change the locale of $instance
                     $value = $instance->getTranslation($i18nProperties['default_locale'])->{"get{$column->getPhpName()}"}();
+                }
+                
+                if ($column->getType() === PropelColumnTypes::PHP_ARRAY) {
+                    $value = implode($this->arrayColumnGlue, (array) $value);
                 }
 
                 $subform->getElement($elname)
@@ -235,6 +242,16 @@ class Silva_Form extends Curry_Form
     public function getUseDefaultLocaleOnEmptyValue()
     {
         return $this->useDefaultLocaleOnEmptyValue;
+    }
+    
+    public function getArrayColumnGlue()
+    {
+        return $this->arrayColumnGlue;
+    }
+    
+    public function setArrayColumnGlue($glue)
+    {
+        $this->arrayColumnGlue = $glue;
     }
 
     /**
