@@ -33,6 +33,16 @@
  */
 class Silva_Form extends Curry_Form
 {
+    /**#@+
+     * Form element type
+     */
+    
+    /**
+     * Use Curry_Form_MultiForm for ARRAY column type
+     */
+    const CURRY_MULTIFORM = "Curry_Form_MultiForm";
+    /**#@-*/
+    
     protected $tableMap;
     protected $i18nTableMap = null;
     protected $locale = null;
@@ -112,14 +122,26 @@ class Silva_Form extends Curry_Form
     {
         $values = $this->getValues();
         foreach ($this->getElementColumns() as $elname => $column) {
-            if ($this->getElement($elname)) {
-                $val = $values[$elname];
-                if ( ($column->getType() === PropelColumnTypes::PHP_ARRAY) && is_string($val)) {
-                    $val = (array) explode($this->arrayColumnGlue, $val);
-                }
-                
-                $instance->{"set{$column->getPhpName()}"}($val);
+            if (!$this->getElement($elname) && !$this->getSubForm(strtolower($column->getName()) . '_form')) {
+                continue;
             }
+            
+            $val = $values[$elname];
+            if ($column->getType() === PropelColumnTypes::PHP_ARRAY) {
+                if (is_string($val)) {
+                    $val = (array) explode($this->arrayColumnGlue, $val);
+                } elseif ($this->isMultiFormElement($column)) {
+                    // convert multiform defaults to array
+                    $fieldname = strtolower($column->getName());
+                    $defaults = $values["{$fieldname}_form"];
+                    $val = array();
+                    foreach ($defaults as $e) {
+                        $val[] = $e[$fieldname];
+                    }
+                }
+            }
+            
+            $instance->{"set{$column->getPhpName()}"}($val);
         }
 
         // populate i18n
@@ -142,16 +164,30 @@ class Silva_Form extends Curry_Form
     /**
      * Populate form elements with values from the model $instance.
      * @param BaseObject $instance Model instance whose column values will be used to populate corresponding form fields
+     * 
+     * @todo Code redundant. Refactor
      */
-    public function fillForm($instance) {
+    public function fillForm($instance)
+    {
         foreach ($this->getElementColumns() as $elname => $column) {
-            if (! $this->getElement($elname)) {
+            if (!$this->getElement($elname) && !$this->getSubForm(strtolower($column->getName()) . '_form')) {
                 continue;
             }
 
             $value = $instance->{"get{$column->getPhpName()}"}();
             if ($column->getType() === PropelColumnTypes::PHP_ARRAY) {
-                $value = implode($this->arrayColumnGlue, (array) $value);
+                $ue = $this->getUserdefinedElement($column);
+                if ($ue === null) {
+                    // using default element, i.e. textarea
+                    $value = implode($this->arrayColumnGlue, (array) $value);
+                } elseif ($this->isMultiFormElement($column)) {
+                    // @todo populate multiform
+                    $defaults = $this->getMultiFormDefaults($column, $value);
+                    $fieldname = strtolower($column->getName()) . '_form';
+                    $mf = $this->getSubForm($fieldname);
+                    $mf->setDefaults($defaults);
+                    continue;
+                }
             }
 
             $this->getElement($elname)
@@ -179,7 +215,13 @@ class Silva_Form extends Curry_Form
                 }
                 
                 if ($column->getType() === PropelColumnTypes::PHP_ARRAY) {
-                    $value = implode($this->arrayColumnGlue, (array) $value);
+                    $ue = $this->getUserdefinedElement($column);
+                    if ($ue === null) {
+                        $value = implode($this->arrayColumnGlue, (array) $value);
+                    } elseif ($this->isMultiFormElement($column)) {
+                        // @todo populate multiform
+                        continue;
+                    }
                 }
 
                 $subform->getElement($elname)
@@ -189,6 +231,39 @@ class Silva_Form extends Curry_Form
             // reset the locale of $instance, just in case getTranslation() changed it
             $instance->setLocale($this->locale);
         }
+    }
+    
+    /**
+     * Return a user-defined element for $column, else return null
+     * @param $column
+     * @return null|string
+     */
+    protected function getUserdefinedElement(ColumnMap $column)
+    {
+        $v = (array) $this->colElmMap[$column->getPhpName()];
+        return array_shift($v);
+    }
+    
+    /**
+     * Determine whether ARRAY $column is a Curry_Form_MultiForm element
+     * @param ColumnMap $column
+     */
+    protected function isMultiFormElement(ColumnMap $column)
+    {
+        return ($this->getUserdefinedElement($column) === self::CURRY_MULTIFORM);
+    }
+    
+    protected function getMultiFormDefaults(ColumnMap $column, array $values)
+    {
+        $defaults = array();
+        $fieldname = strtolower($column->getName());
+        foreach ($values as $value) {
+            $defaults[] = array(
+                $fieldname => $value,
+            );
+        }
+        
+        return $defaults;
     }
 
     /**
@@ -293,6 +368,12 @@ class Silva_Form extends Curry_Form
      */
     public function createElementFromColumn(ColumnMap $column)
     {
+        // @todo refactor code
+        if ($column->getType()===PropelColumnTypes::PHP_ARRAY && $this->isMultiFormElement($column)) {
+            $this->addMultiFormElement($column);
+            return null;
+        }
+        
         // create default element options
         $defaultOptions = array(
             'label' => ucfirst(strtolower(str_replace("_", " ", $column->getName()))),
@@ -530,7 +611,10 @@ class Silva_Form extends Curry_Form
                 continue;
             }
 
-            $this->addElement($this->createElementFromColumn($column));
+            $element = $this->createElementFromColumn($column);
+            if ($element !== null) {
+                $this->addElement($element);
+            }
         }
 
         if ($this->i18nTableMap !== null) {
@@ -543,10 +627,58 @@ class Silva_Form extends Curry_Form
     {
         $subform = new Curry_Form_SubForm();
         foreach ($this->getI18nElementColumns() as $column) {
-            $subform->addElement($this->createElementFromColumn($column));
+            $element = $this->createElementFromColumn($column);
+            if ($element !== null) {
+                $subform->addElement($element);
+            }
         }
 
         return $subform;
+    }
+    
+    protected function addMultiFormElement(ColumnMap $column)
+    {
+        // create default element options
+        $options = array(
+            //'label' => ucfirst(strtolower(str_replace("_", " ", $column->getName()))),
+            'required' => $column->isNotNull(),
+        );
+        $element = 'text';
+        $fieldName = strtolower($column->getName());
+        
+        $v = (array) $this->colElmMap[$column->getPhpName()];
+        array_shift($v); //remove topmost item
+        if (! empty($v)) {
+            $t = array_shift($v);
+            if (is_string($t)) {
+                // user-defined element specified
+                $element = $t;
+                // user-defined options specified
+                if (! empty($v)) {
+                    Curry_Array::extend($options, array_pop($v));
+                }
+            } elseif (is_array($t)) {
+                // user-defined options specified
+                Curry_Array::extend($options, $t);
+            }
+        }
+        
+        // create dynamic form
+        $dynaForm = new Curry_Form_Dynamic(array(
+            // @todo choose a better legend group name
+            //'legend' => $column->getPhpName(),
+        ));
+        $dynaForm->addElement($element, $fieldName, $options);
+        
+        // create multiform
+        $multiForm = new Curry_Form_MultiForm(array(
+            'legend' => $column->getPhpName(),
+            'cloneTarget' => $dynaForm,
+            'defaults' => array(),
+        ));
+        
+        // append the multiform to this form
+        $this->addSubForm($multiForm, $fieldName.'_form');
     }
 
 } // Silva_Form
