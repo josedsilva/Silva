@@ -17,8 +17,8 @@
  *
  */
 /**
- * Create a Zend Form automagically from The TableMap of the model.
- * The Form can be populated from the model instance and
+ * Create a Zend Form automagically from the TableMap of the model.
+ * The form can be populated from the model instance and
  * a model instance can be populated from the form values.
  *
  * Supports i18n behavior
@@ -53,17 +53,17 @@ class Silva_Form extends Curry_Form
      */
 
     /**
-     * whether to use content of the default locale when fields are empty?
+     * whether content of the default locale be used when corresponding field is empty?
      * @var boolean
      */
     protected $useDefaultLocaleOnEmptyValue = false;
     /**
-     * whether elements be constructed for primary keys?
+     * whether form elements be created for primary keys?
      * @var boolean
      */
     protected $ignorePks = true;
     /**
-     * whether dropdowns be created for foreign keys?
+     * whether form elements be created for foreign keys?
      * @var boolean
      */
     protected $ignoreFks = true;
@@ -90,9 +90,9 @@ class Silva_Form extends Curry_Form
      * Create a Zend form.
      * Form elements are not attached to the form in the constructor.
      * Call createElements() to attach form elements to the form after setting all options.
-     * @param TableMap $tableMap Model from which form elements will be created
-     * @param Curry_Backend $backend: Backend instance
-     * @param array $options: Options passed to Curry_Form
+     * @param TableMap $tableMap: Model from which to create form elements.
+     * @param Curry_Backend $backend: Backend instance.
+     * @param array $options: Options passed to Curry_Form.
      */
     public function __construct(TableMap $tableMap, Curry_Backend $backend, $options = null)
     {
@@ -111,6 +111,32 @@ class Silva_Form extends Curry_Form
     {
         $this->i18nTableMap = Silva_Propel::getI18nTableMap($this->tableMap);
     }
+    
+    private function populateModel($instance, $form, $columns)
+    {
+        $values = $form->getValues();
+        foreach ($columns as $elname => $column) {
+            if (!$form->getElement($elname) && !$form->getSubForm("{$elname}_form")) {
+                continue;
+            }
+            
+            $val = $values[$elname];
+            if ($column->getType() === PropelColumnTypes::PHP_ARRAY) {
+                if (is_string($val)) {
+                    $val = (array) explode($this->arrayColumnGlue, $val);
+                } elseif ($this->isMultiForm($column)) {
+                    // convert multiform defaults to array
+                    $defaults = $values["{$elname}_form"];
+                    $val = array();
+                    foreach ($defaults as $item) {
+                        $val[] = $item[$elname];
+                    }
+                }
+            }
+            
+            $instance->{"set{$column->getPhpName()}"}($val);
+        }
+    }
 
     /**
      * Populate model $instance with values from the form.
@@ -120,47 +146,52 @@ class Silva_Form extends Curry_Form
      */
     public function fillModel($instance)
     {
-        $values = $this->getValues();
-        foreach ($this->getElementColumns() as $elname => $column) {
-            if (!$this->getElement($elname) && !$this->getSubForm(strtolower($column->getName()) . '_form')) {
-                continue;
-            }
-            
-            $val = $values[$elname];
-            if ($column->getType() === PropelColumnTypes::PHP_ARRAY) {
-                if (is_string($val)) {
-                    $val = (array) explode($this->arrayColumnGlue, $val);
-                } elseif ($this->isMultiFormElement($column)) {
-                    // convert multiform defaults to array
-                    $fieldname = strtolower($column->getName());
-                    $defaults = $values["{$fieldname}_form"];
-                    $val = array();
-                    foreach ($defaults as $e) {
-                        $val[] = $e[$fieldname];
-                    }
-                }
-            }
-            
-            $instance->{"set{$column->getPhpName()}"}($val);
-        }
-
-        // populate i18n
+        $this->populateModel($instance, $this, $this->getElementColumns());
         if ($this->i18nTableMap !== null) {
-            $subform = $this->getSubForm('I18n');
-            $i18nValues = (array) $values['I18n'];
-            foreach ($this->getI18nElementColumns() as $elname => $column) {
-                if ($subform->getElement($elname)) {
-                    $val = $i18nValues[$elname];
-                    if ( ($column->getType() === PropelColumnTypes::PHP_ARRAY) && is_string($val)) {
-                        $val = (array) explode($this->arrayColumnGlue, $val);
-                    }
-                    
-                    $instance->{"set{$column->getPhpName()}"}($val);
-                }
-            }
+            $i18nForm = $this->getSubForm('I18n');
+            $this->populateModel($instance, $i18nForm, $this->getI18nElementColumns());
         }
     }
 
+    private function populateElements($instance, $form, $columns, $locale = null)
+    {
+        if ($locale !== null) {
+            $i18nProperties = Silva_Propel::getBehavior("i18n", $this->tableMap);
+        }
+        
+        foreach ($columns as $elname => $column) {
+            if (!$form->getElement($elname) && !$form->getSubForm("{$elname}_form")) {
+                continue;
+            }
+            $columnPhpName = $column->getPhpName();
+            $value = $instance->{"get{$columnPhpName}"}();
+            if ( ($locale !== null) && $this->useDefaultLocaleOnEmptyValue && empty($value) && ($locale != $i18nProperties['default_locale'])) {
+                // NOTE: getTranslation() will change the locale of $instance
+                $value = $instance->getTranslation($i18nProperties['default_locale'])->{"get{$columnPhpName}"}();
+                // reset the locale of $instance, just in case getTranslation() changed it
+                $instance->setLocale($this->locale);
+            }
+            
+            if ($column->getType() === PropelColumnTypes::PHP_ARRAY) {
+                $ue = $this->getUserdefinedElement($column);
+                if ($ue === null) {
+                    // using default element, i.e. textarea
+                    $value = implode($this->arrayColumnGlue, (array) $value);
+                } elseif ($this->isMultiForm($column)) {
+                    // populate multiform
+                    $defaults = $this->getMultiFormDefaults($column, $value);
+                    $fieldName = "{$elname}_form";
+                    $mf = $this->getSubForm($fieldName);
+                    $mf->setDefaults($defaults);
+                    continue;
+                }
+            }
+            
+            $form->getElement($elname)
+                ->setValue($value);
+        }
+    }
+    
     /**
      * Populate form elements with values from the model $instance.
      * @param BaseObject $instance Model instance whose column values will be used to populate corresponding form fields
@@ -169,67 +200,15 @@ class Silva_Form extends Curry_Form
      */
     public function fillForm($instance)
     {
-        foreach ($this->getElementColumns() as $elname => $column) {
-            if (!$this->getElement($elname) && !$this->getSubForm(strtolower($column->getName()) . '_form')) {
-                continue;
-            }
-
-            $value = $instance->{"get{$column->getPhpName()}"}();
-            if ($column->getType() === PropelColumnTypes::PHP_ARRAY) {
-                $ue = $this->getUserdefinedElement($column);
-                if ($ue === null) {
-                    // using default element, i.e. textarea
-                    $value = implode($this->arrayColumnGlue, (array) $value);
-                } elseif ($this->isMultiFormElement($column)) {
-                    // @todo populate multiform
-                    $defaults = $this->getMultiFormDefaults($column, $value);
-                    $fieldname = strtolower($column->getName()) . '_form';
-                    $mf = $this->getSubForm($fieldname);
-                    $mf->setDefaults($defaults);
-                    continue;
-                }
-            }
-
-            $this->getElement($elname)
-                ->setValue($value);
-        }
-
+        $this->populateElements($instance, $this, $this->getElementColumns());
         // populate i18n fields
         if ($this->i18nTableMap !== null) {
-            $subform = $this->getSubForm('I18n');
+            $i18nForm = $this->getSubForm('I18n');
             $this->locale = $instance->getLocale();
-            $subform->addAttribs(array(
+            $i18nForm->addAttribs(array(
                 'legend' => 'Locale: ' . Silva_View::getLanguageString($this->locale)
             ));
-
-            $i18nProperties = Silva_Propel::getBehavior("i18n", $this->tableMap);
-            foreach ($this->getI18nElementColumns() as $elname => $column) {
-                if (! $subform->getElement($elname)) {
-                    continue;
-                }
-
-                $value = $instance->{"get{$column->getPhpName()}"}();
-                if (empty($value) && $this->useDefaultLocaleOnEmptyValue && ($this->locale != $i18nProperties['default_locale'])) {
-                    // NOTE: getTranslation() will change the locale of $instance
-                    $value = $instance->getTranslation($i18nProperties['default_locale'])->{"get{$column->getPhpName()}"}();
-                }
-                
-                if ($column->getType() === PropelColumnTypes::PHP_ARRAY) {
-                    $ue = $this->getUserdefinedElement($column);
-                    if ($ue === null) {
-                        $value = implode($this->arrayColumnGlue, (array) $value);
-                    } elseif ($this->isMultiFormElement($column)) {
-                        // @todo populate multiform
-                        continue;
-                    }
-                }
-
-                $subform->getElement($elname)
-                    ->setValue($value);
-            }
-
-            // reset the locale of $instance, just in case getTranslation() changed it
-            $instance->setLocale($this->locale);
+            $this->populateElements($instance, $i18nForm, $this->getI18nElementColumns(), $this->locale);
         }
     }
     
@@ -245,10 +224,10 @@ class Silva_Form extends Curry_Form
     }
     
     /**
-     * Determine whether ARRAY $column is a Curry_Form_MultiForm element
+     * Determine whether ARRAY $column is a Curry_Form_MultiForm.
      * @param ColumnMap $column
      */
-    protected function isMultiFormElement(ColumnMap $column)
+    protected function isMultiForm(ColumnMap $column)
     {
         return ($this->getUserdefinedElement($column) === self::CURRY_MULTIFORM);
     }
@@ -364,22 +343,15 @@ class Silva_Form extends Curry_Form
      * The element is not attached to this form, only returned.
      *
      * @param ColumnMap $column
-     * @return Curry_Form_Element
+     * @return Curry_Form_Element|Curry_Form
      */
     public function createElementFromColumn(ColumnMap $column)
     {
-        // @todo refactor code
-        if ($column->getType()===PropelColumnTypes::PHP_ARRAY && $this->isMultiFormElement($column)) {
-            $this->addMultiFormElement($column);
-            return null;
-        }
-        
         // create default element options
         $defaultOptions = array(
             'label' => ucfirst(strtolower(str_replace("_", " ", $column->getName()))),
             'required' => $column->isNotNull(),
         );
-        
         $element = null;
         $fieldName = strtolower($column->getName());
         // tinyMCE fix
@@ -388,63 +360,70 @@ class Silva_Form extends Curry_Form
             $fieldName = strtolower($this->tableMap->getName()) . '_content';
         }
         
-        if (is_array($this->colElmMap) && (($elm = $this->colElmMap[$column->getPhpName()]) !== null) ) {
-            if (is_string($elm)) {
-                // user-defined Curry_Form_Element
-                $element = $this->createElement($elm, $fieldName);
-            } elseif (is_array($elm)) {
-                // could be either:
-                // 1. Curry_Form_Element with array of user-defined options
-                // 2. array of user-defined options
-                reset($elm);
-                if (is_int(key($elm))) {
-                    // case 1.
-                    return $this->createElement(array_shift($elm), $fieldName, Curry_Array::extend($defaultOptions, array_pop($elm)));
-                } else {
-                    // case 2.
-                    $defaultOptions = Curry_Array::extend($defaultOptions, $elm);
+        if ($this->colElmMap !== null) {
+            if ($column->getType()===PropelColumnTypes::PHP_ARRAY && $this->isMultiForm($column)) {
+                return $this->getMultiForm($column, $fieldName, $defaultOptions);
+            }
+            $elm = $this->colElmMap[$column->getPhpName()];
+            if ($elm !== null) {
+                if (is_string($elm)) {
+                    // user-defined Curry_Form_Element
+                    $element = $this->createElement($elm, $fieldName);
+                } elseif (is_array($elm)) {
+                    // could be either:
+                    // 1. Curry_Form_Element with array of user-defined options
+                    // 2. array of user-defined options
+                    reset($elm);
+                    if (is_int(key($elm))) {
+                        // case 1.
+                        return $this->createElement(array_shift($elm), $fieldName, Curry_Array::extend($defaultOptions, array_pop($elm)));
+                    } else {
+                        // case 2.
+                        $defaultOptions = Curry_Array::extend($defaultOptions, $elm);
+                    }
                 }
             }
         }
         
-        // create select dropdown for foreign-key column.
-        if (($element === null) && $column->isForeignKey()) {
-            $element = $this->createElement('select', $fieldName, array(
-                'multiOptions' => self::getMultiOptionsForFk($column, $this->locale)
-            ));
-        } elseif ($element === null) {
-            switch ($column->getType()) {
-                case PropelColumnTypes::PHP_ARRAY:
-                case PropelColumnTypes::LONGVARCHAR:
-                    $element = $this->createElement('textarea', $fieldName, array(
-                        'rows' => 10,
-                    ));
-                    break;
-                case PropelColumnTypes::DATE:
-                    $element = $this->createElement('date', $fieldName);
-                    break;
-                case PropelColumnTypes::TIMESTAMP:
-                    $element = $this->createElement('dateTime', $fieldName);
-                    $element->setDescription('Choose date from the DatePicker and time should be entered in HH:MM:SS format.');
-                    break;
-                case PropelColumnTypes::BOOLEAN:
-                    $element = $this->createElement('checkbox', $fieldName);
-                    break;
-                case PropelColumnTypes::ENUM:
-                    $element = $this->createElement('select', $fieldName, array(
-                        'multiOptions' => array_combine(
-                            $column->getValueSet(),
-                            array_map("ucfirst", $column->getValueSet())
-                        ),
-                    ));
-                    break;
-                case PropelColumnTypes::DOUBLE:
-                case PropelColumnTypes::FLOAT:
-                case PropelColumnTypes::INTEGER:
-                case PropelColumnTypes::VARCHAR:
-                default:
-                    $element = $this->createElement('text', $fieldName);
-                    break;
+        if ($element === null) {
+            if ($column->isForeignKey()) {
+                $element = $this->createElement('select', $fieldName, array(
+                    'multiOptions' => self::getMultiOptionsForFk($column, $this->locale),
+                ));
+            } else {
+                switch ($column->getType()) {
+                    case PropelColumnTypes::PHP_ARRAY:
+                    case PropelColumnTypes::LONGVARCHAR:
+                        $element = $this->createElement('textarea', $fieldName, array(
+                            'rows' => 10,
+                        ));
+                        break;
+                    case PropelColumnTypes::DATE:
+                        $element = $this->createElement('date', $fieldName);
+                        break;
+                    case PropelColumnTypes::TIMESTAMP:
+                        $element = $this->createElement('dateTime', $fieldName);
+                        $element->setDescription('Choose date from the DatePicker and time should be entered in HH:MM:SS format.');
+                        break;
+                    case PropelColumnTypes::BOOLEAN:
+                        $element = $this->createElement('checkbox', $fieldName);
+                        break;
+                    case PropelColumnTypes::ENUM:
+                        $element = $this->createElement('select', $fieldName, array(
+                            'multiOptions' => array_combine(
+                                $column->getValueSet(),
+                                array_map("ucfirst", $column->getValueSet())
+                            ),
+                        ));
+                        break;
+                    case PropelColumnTypes::DOUBLE:
+                    case PropelColumnTypes::FLOAT:
+                    case PropelColumnTypes::INTEGER:
+                    case PropelColumnTypes::VARCHAR:
+                    default:
+                        $element = $this->createElement('text', $fieldName);
+                        break;
+                }
             }
         }
         
@@ -473,44 +452,6 @@ class Silva_Form extends Curry_Form
         
         return $list;
     }
-        /*public function createElementFromRelation(RelationMap $relation)
-	{
-		switch ($relation->getType())
-		{
-			case RelationMap::ONE_TO_MANY:
-			case RelationMap::MANY_TO_MANY:
-				$element = $this->createElement('multiSelect', strtolower($relation->getName()));
-				$element->setLabel(ucfirst(str_replace("_", " ", $relation->getName())) + 's');
-				break;
-			case RelationMap::MANY_TO_ONE:
-			case RelationMap::ONE_TO_ONE:
-				$element = $this->createElement('multiSelect', strtolower($relation->getName()));
-				$element->setLabel(ucfirst(str_replace("_", " ", $relation->getName())));
-				break;
-		}
-
-		$element->setMultioptions($this->getMultiOptsFromRelation($relation));
-		return $element;
-	}*/
-    /*public function createMultiOptsFromRelation(RelationMap $relation)
-	{
-		$otherTable = $relation->getRightTable();
-		$objs = PropelQuery::from($otherTable->getPhpName())->find();
-		$opts = array();
-		foreach ($objs as $obj)
-		{
-			if ( method_exists($obj, '__toString') )
-			{
-				$opts[$obj->getPrimaryKey()] = $obj->__toString();
-			}
-			else
-			{
-				$opts[$obj->getPrimaryKey()] = $obj->getPrimaryKey();
-			}
-		}
-
-		return $opts;
-	}*/
 
     /**
      * Return an array containing the actual column names to ignore.
@@ -541,60 +482,64 @@ class Silva_Form extends Curry_Form
 
         return $columns;
     }
-
+    
     /**
-     * Return an array of ColumnMap objects for this table
-     * that will be used in constructing form elements.
-     *
-     * @return array (Array[form_field_name] = ColumnMap)
+     * Return the map of fieldNames versus ColumnMaps
+     * @param ColumnMap[] $columns
+     * @param $skipColumnFunc
      */
-    protected function getElementColumns()
+    private function getElementColumnMap($columns, $skipColumnFunc)
     {
-        $columns = array();
+        $cols = array();
         $ignoredColumns = $this->getIgnoredColumns();
-        foreach ($this->tableMap->getColumns() as $column) {
-            // whether to skip primary and foreign keys?
-            if ( ($column->isPrimaryKey() && $this->ignorePks) || ($column->isForeignKey() && $this->ignoreFks) ) {
-                continue;
-            }
-
+        foreach ($columns as $column) {
             $fieldName = strtolower($column->getName());
             // whether to ignore this column?
-            if (in_array($fieldName, $ignoredColumns)) {
+            if ($skipColumnFunc($column, $this->ignorePks, $this->ignoreFks) || in_array($fieldName, $ignoredColumns)) {
                 continue;
             }
-            
             // tinyMCE fix
             if ($fieldName == 'content') {
                 // FIXME strtolower($this->tableMap->getName()) is not required since $this->tableMap->getName() returns a lowercase-underscore-name
                 $fieldName = strtolower($this->tableMap->getName()) . '_content';
             }
-            
-            $columns[$fieldName] = $column;
+            $cols[$fieldName] = $column;
         }
+        return $cols;
+    }
 
-        return $columns;
+    /**
+     * Return a map of elementName-ColumnMap objects for this table.
+     * @return array (Array[form_field_name] = ColumnMap)
+     */
+    protected function getElementColumns()
+    {
+        $skipColFunc = create_function('$column,$igPks,$igFks', 'return (($column->isPrimaryKey() && $igPks) || ($column->isForeignKey() && $igFks));');
+        return $this->getElementColumnMap($this->tableMap->getColumns(), $skipColFunc);
     }
 
     protected function getI18nElementColumns()
     {
-        $columns = array();
-        foreach ($this->i18nTableMap->getColumns() as $column) {
-            // skip Pk and locale columns
-            if ( $column->isPrimaryKey() || ($column->getName() == 'LOCALE') ) {
-                continue;
-            }
-
-            $columns[strtolower($column->getName())] = $column;
-        }
-
-        return $columns;
+        $skipColFunc = create_function('$column,$igPks,$igFks', 'return ($column->isPrimaryKey() || ($column->getName() == "LOCALE"));');
+        return $this->getElementColumnMap($this->i18nTableMap->getColumns(), $skipColFunc);
     }
     
     protected function preCreateElements()
     {
         if (method_exists($this->backend, Silva_Event::EVENT_ON_FORM_ELEMENTS_INIT)) {
             $this->colElmMap = call_user_func_array(array($this->backend, Silva_Event::EVENT_ON_FORM_ELEMENTS_INIT), array(&$this));
+        }
+    }
+    
+    private function addElementsToForm(&$form, $columns)
+    {
+        foreach ($columns as $column) {
+            $element = $this->createElementFromColumn($column);
+            if ($element instanceof  Zend_Form_Element) {
+                $form->addElement($element);
+            } elseif ($element instanceof Zend_Form) {
+                $form->addSubForm($element, strtolower($column->getName()) . '_form');
+            }
         }
     }
 
@@ -605,47 +550,17 @@ class Silva_Form extends Curry_Form
     public function createElements()
     {
         $this->preCreateElements();
-
-        foreach ($this->getElementColumns() as $column) {
-            if ( ($column->isPrimaryKey && $this->ignorePks) || ($column->isForeignKey() && $this->ignoreFks) ) {
-                continue;
-            }
-
-            $element = $this->createElementFromColumn($column);
-            if ($element !== null) {
-                $this->addElement($element);
-            }
-        }
-
+        $this->addElementsToForm($this, $this->getElementColumns());
         if ($this->i18nTableMap !== null) {
-            $subform = $this->getLocaleSubForm();
-            $this->addSubForm($subform, 'I18n');
+            $i18nForm = new Curry_Form_SubForm();
+            $this->addElementsToForm($i18nForm, $this->getI18nElementColumns());
+            $this->addSubForm($i18nForm, 'I18n');
         }
     }
 
-    protected function getLocaleSubForm()
+    protected function getMultiForm(ColumnMap $column, $fieldName, $options)
     {
-        $subform = new Curry_Form_SubForm();
-        foreach ($this->getI18nElementColumns() as $column) {
-            $element = $this->createElementFromColumn($column);
-            if ($element !== null) {
-                $subform->addElement($element);
-            }
-        }
-
-        return $subform;
-    }
-    
-    protected function addMultiFormElement(ColumnMap $column)
-    {
-        // create default element options
-        $options = array(
-            //'label' => ucfirst(strtolower(str_replace("_", " ", $column->getName()))),
-            'required' => $column->isNotNull(),
-        );
         $element = 'text';
-        $fieldName = strtolower($column->getName());
-        
         $v = (array) $this->colElmMap[$column->getPhpName()];
         array_shift($v); //remove topmost item
         if (! empty($v)) {
@@ -664,10 +579,7 @@ class Silva_Form extends Curry_Form
         }
         
         // create dynamic form
-        $dynaForm = new Curry_Form_Dynamic(array(
-            // @todo choose a better legend group name
-            //'legend' => $column->getPhpName(),
-        ));
+        $dynaForm = new Curry_Form_Dynamic();
         $dynaForm->addElement($element, $fieldName, $options);
         
         // create multiform
@@ -677,8 +589,7 @@ class Silva_Form extends Curry_Form
             'defaults' => array(),
         ));
         
-        // append the multiform to this form
-        $this->addSubForm($multiForm, $fieldName.'_form');
+        return $multiForm;
     }
 
 } // Silva_Form
