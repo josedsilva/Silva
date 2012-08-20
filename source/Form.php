@@ -79,6 +79,7 @@ class Silva_Form extends Curry_Form
     	// propel does not permit adding a behavior of the same name multiple times in a table.
     	// FIXME please update when issue is fixed.
     	'aggregate_column' => array('name'),
+      'sluggable' => array('slug_column'),
     );
     /**#@-*/
     
