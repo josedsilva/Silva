@@ -53,7 +53,7 @@ abstract class Silva_Backend extends Curry_Backend
      */
     protected static $defaultOptions = array(
         // whether to automagically show breadcrumbs in default view handlers
-        'showBreadcrumbs' => false,
+        'showBreadcrumbs' => true,
     );
 
     /**

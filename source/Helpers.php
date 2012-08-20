@@ -50,15 +50,4 @@ abstract class Silva_Helpers
         return $fullPath ? $fullTempPath : self::TEMP_PATH;
     }
 
-    /**
-     * Whether $object belongs to $class
-     * @param $object
-     * @param string $class
-     * @return boolean
-     */
-    public static function is_class($object, $class)
-    {
-        return (is_object($object) && (get_class($object)==$class));
-    }
-
 } //Silva_Helpers

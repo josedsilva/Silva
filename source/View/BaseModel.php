@@ -43,7 +43,7 @@ abstract class Silva_View_BaseModel extends Silva_View
         // whether to automagically appended a submit button to the form if not present.
         'appendSubmitButton' => true,
         // whether to automagically build form from the TableMap?
-        'autoBuildForm' => false,
+        'autoBuildForm' => true,
         // whether empty value is substituted by the default locale's content when "autoBuildForm" is edited?
         'useDefaultLocaleOnEmptyValue' => false,
         // whether to ignore foreign keys when auto building forms?

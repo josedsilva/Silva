@@ -114,7 +114,7 @@ class Silva_Form extends Curry_Form
     
     private function populateModel($instance, $form, $columns)
     {
-        $values = $form->getValues();
+        $values = $form->getValues(true);
         foreach ($columns as $elname => $column) {
             if (!$form->getElement($elname) && !$form->getSubForm("{$elname}_form")) {
                 continue;
@@ -194,9 +194,7 @@ class Silva_Form extends Curry_Form
     
     /**
      * Populate form elements with values from the model $instance.
-     * @param BaseObject $instance Model instance whose column values will be used to populate corresponding form fields
-     * 
-     * @todo Code redundant. Refactor
+     * @param BaseObject $instance: Model instance whose column values will be used to populate corresponding form fields
      */
     public function fillForm($instance)
     {
