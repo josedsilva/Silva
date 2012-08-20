@@ -123,7 +123,9 @@ class Silva_Form extends Curry_Form
             
             $val = $values[$elname];
             if ($column->getType() === PropelColumnTypes::PHP_ARRAY) {
-                if (is_string($val)) {
+                if ($val === null) {
+                    $val = array();
+                } elseif (is_string($val)) {
                     $val = (array) explode($this->arrayColumnGlue, $val);
                 } elseif ($this->isMultiForm($column)) {
                     // convert multiform defaults to array
