@@ -184,7 +184,7 @@ class Silva_Form extends Curry_Form
                     // populate multiform
                     $defaults = $this->getMultiFormDefaults($column, $value);
                     $fieldName = "{$elname}_form";
-                    $mf = $this->getSubForm($fieldName);
+                    $mf = $form->getSubForm($fieldName);
                     $mf->setDefaults($defaults);
                     continue;
                 }

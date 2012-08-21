@@ -99,11 +99,21 @@ abstract class Silva_Backend extends Curry_Backend
             } else {
                 $viewname = $view->getViewname();
             }
-
-            $this->viewMap[$viewname] = $view;
-            if ($view->hasTable()) {
-                $this->tableViewMap[$view->getTablename()] = $view;
-            }
+            
+            $this->setView($viewname, $view);
+        }
+    }
+    
+    /**
+     * Set an individual view.
+     * @param string $viewname
+     * @param Silva_View $view
+     */
+    public function setView($viewname, $view)
+    {
+        $this->viewMap[$viewname] = $view;
+        if ($view->hasTable()) {
+            $this->tableViewMap[$view->getTablename()] = $view;
         }
     }
 
@@ -181,7 +191,7 @@ abstract class Silva_Backend extends Curry_Backend
         if (! $this->options['showBreadcrumbs']) {
             return;
         }
-
+        
         $viewStack = $this->getViewStack();
         foreach ($viewStack as $viewname => $url) {
             $sv = $this->getViewByName($viewname);
