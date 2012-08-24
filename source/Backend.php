@@ -185,11 +185,18 @@ abstract class Silva_Backend extends Curry_Backend
 
     /**
      * Add breadcrumbs to the current view
+     * @param string $viewname
+     * @param Silva_View|null $view
      */
-    public function showBreadcrumbs()
+    public function showBreadcrumbs($viewname = null, $view = null)
     {
         if (! $this->options['showBreadcrumbs']) {
             return;
+        }
+        
+        if ($viewname && $view instanceof Silva_View) {
+            $this->setView($viewname, $view);
+            $this->pushView($viewname);
         }
         
         $viewStack = $this->getViewStack();
@@ -487,20 +494,20 @@ abstract class Silva_Backend extends Curry_Backend
     }
 
     /**
-     * Push the $view onto the view stack.
+     * Push the view onto the view stack.
      * The view stack stores a list of views traversed (Main at 0, nth-view at 'n-1').
-     * @param string $view: the value of the 'view' url query param.
+     * @param string $viewname: the value of the 'view' url query param.
      */
-    protected function pushView($view)
+    protected function pushView($viewname)
     {
         $viewStack = $this->getViewStack();
         if (! empty($viewStack)) {
-            $offset = Silva_Array::array_key_index($view, $this->viewMap);
+            $offset = Silva_Array::array_key_index($viewname, $this->viewMap);
             if ($offset !== false) {
                 array_splice($viewStack, $offset);
             }
         }
-        $viewStack[$view] = url('', $_GET)->remove(array('json'))->getUrl();
+        $viewStack[$viewname] = url('', $_GET)->remove(array('json'))->getUrl();
         $this->saveViewStack($viewStack);
     }
 

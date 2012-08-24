@@ -18,9 +18,7 @@ class Project_Backend_Products extends Silva_Backend
 {
   public function __construct()
   {
-    parent::__construct(array(
-      'showBreadcrumbs' => true,
-    ));
+    parent::__construct();
 
     $this->setViews(array(
       $this->getProductCatView(),
@@ -30,9 +28,7 @@ class Project_Backend_Products extends Silva_Backend
 
   protected function getProductCatView()
   {
-    $sv = new Silva_View_Grid('ProductCat', null, $this, array(
-      'autoBuildForm' => true,
-    ));
+    $sv = new Silva_View_Grid('ProductCat', null, $this);
     $sv->setBreadcrumbText('Categories');
     return $sv;
   }
@@ -54,9 +50,7 @@ class Project_Backend_Products extends Silva_Backend
 
   protected function getProductView()
   {
-    $sv = new Silva_View_Grid('Product', 'ProductCat', $this, array(
-      'autoBuildForm' => true,
-    ));
+    $sv = new Silva_View_Grid('Product', 'ProductCat', $this);
     
     return $sv;
   }
