@@ -128,8 +128,6 @@ abstract class Silva_View
      */
     protected $options = array();
 
-    protected $filterForm = null;
-
     /**
      * Instantiate the view
      * @param Curry_Backend $backend
@@ -188,18 +186,6 @@ abstract class Silva_View
         }
 
         return $form;
-    }
-
-    public function setFilterForm(Curry_Form $filterForm)
-    {
-        $this->filterForm = $filterForm;
-    }
-
-    protected function showFilterForm()
-    {
-        if ($this->filterForm) {
-            $this->addMainContent($this->filterForm);
-        }
     }
 
     /**

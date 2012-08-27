@@ -33,6 +33,19 @@ class Silva_View_Grid extends Silva_View_BaseModel
      * @var Silva_Grid|null
      */
     protected $grid = null;
+    
+    protected $filterForm = null;
+    
+    /**
+     * Map of filter form elements versus filter collection
+     * @var array
+     */
+    protected $autoFilterMap = null;
+    /**
+     * auto filter data map
+     * @var array
+     */
+    protected $autoFilterData = null;
 
     /**
      * Default options
@@ -156,6 +169,17 @@ class Silva_View_Grid extends Silva_View_BaseModel
             foreach (Silva_Propel::getI18nColumns($this->tableMap) as $column) {
                 if (in_array(strtolower($column->getName()), $i18nColumns)) {
                     $query->withColumn("{$this->getI18nTablename()}.{$column->getPhpName()}", "I18n{$column->getPhpName()}");
+                }
+            }
+        }
+        
+        // setup auto filters
+        if ($this->autoFilterMap !== null) {
+            $this->autoFilterData = array();
+            foreach ($this->autoFilterMap as $element => $val) {
+                $this->autoFilterData[$element] = isset($_GET[$element]) ? $_GET[$element] : 0;
+                if ($this->autoFilterData[$element]) {
+                    $query->{'filterBy' . $this->tableMap->getColumn($element)->getPhpName()}($this->autoFilterData[$element]);
                 }
             }
         }
@@ -491,6 +515,50 @@ class Silva_View_Grid extends Silva_View_BaseModel
         }
 
         $this->backend->returnPartial($form);
+    }
+    
+    /**
+     * Setup auto filters for this view.
+     * @param array $filterMap
+     */
+    public function setAutoFilters(array $filterMap)
+    {
+        $this->autoFilterMap = $filterMap;
+    }
+    
+    /**
+     * Attach a filter form to the view.
+     * @param Curry_Form $filterForm
+     */
+    public function setFilterForm(Curry_Form $filterForm)
+    {
+        $this->filterForm = $filterForm;
+    }
+
+    protected function showFilterForm()
+    {
+        if ($this->autoFilterMap !== null) {
+            $this->setAutoFilterForm();
+        }
+        
+        if ($this->filterForm) {
+            $this->addMainContent($this->filterForm);
+        }
+    }
+    
+    protected function setAutoFilterForm()
+    {
+        $elements = array();
+        foreach ($this->autoFilterMap as $element => $val) {
+            $elements[$element] = array('select', array(
+                'label' => $val[1],
+                'multiOptions' => array(0 => isset($val[2]) ? $val[2] : '[ No filter ]') + $val[0],
+                'value' => $this->autoFilterData[$element],
+                'onchange' => self::JS_SUBMIT_FORM,
+            ));
+        }
+        
+        $this->setFilterForm(self::getFilterForm($elements));
     }
 
 } //Silva_View_Grid
