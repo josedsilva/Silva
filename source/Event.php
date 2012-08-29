@@ -51,4 +51,15 @@ class Silva_Event {
     const EVENT_ON_FORM_ELEMENTS_INIT = 'onFormElementsInit';
     /**#@-*/
     
+    /**
+     * Return the name of the event handler
+     * @param string $event   Silva_Event::EVENT_XXXXX
+     * @param mixed $params   Placeholders or substitution parameters
+     * @param mixed $values   
+     */
+    public static function getEvent($event, $params, $values)
+    {
+        return str_replace($params, $values, $event);
+    }
+    
 } // Silva_Event

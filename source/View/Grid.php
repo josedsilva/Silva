@@ -175,11 +175,16 @@ class Silva_View_Grid extends Silva_View_BaseModel
         
         // setup auto filters
         if ($this->autoFilterMap !== null) {
+            if (! $query) {
+                // $query may not be defined if this model does not have a category.
+                $query = PropelQuery::from($this->getTablename());
+            }
+            
             $this->autoFilterData = array();
             foreach ($this->autoFilterMap as $element => $val) {
                 $this->autoFilterData[$element] = isset($_GET[$element]) ? $_GET[$element] : 0;
                 if ($this->autoFilterData[$element]) {
-                    $query->{'filterBy' . $this->tableMap->getColumn($element)->getPhpName()}($this->autoFilterData[$element]);
+                    $query->filterBy($this->tableMap->getColumn($element)->getPhpName(), $this->autoFilterData[$element]);
                 }
             }
         }

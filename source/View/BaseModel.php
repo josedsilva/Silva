@@ -260,18 +260,10 @@ abstract class Silva_View_BaseModel extends Silva_View
     }
 
     /**
-     * Enable View to edit the model.
-     * You will have to define 2 callback methods in your backend class, viz.
-     * 1. public function get[TablePhpName/Class]Form([TableClass] $instance, Curry_Form|Silva_Form $form);
-     * -> A partial Curry_Form or Silva_Form is passed to the method. The action and encoding has been set.
-     * If Curry_Form, add elements to $form and return $form.
-     * If Silva_Form, manipulate pre-added elements and return $form.
-     * 2. public function save[TableClass]([TableClass] $instance, array values);
-     * -> The method that saves $form values to the model.
+     * Enable the View to edit the model.
      *
      * @param boolean $returnPartial: @see Curry_Application::returnPartial
-     * @return string|Curry_Form|Silva_Form
-     *
+     * @return string|Zend_Form
      */
     public function editModel($returnPartial = true)
     {

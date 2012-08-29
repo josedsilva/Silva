@@ -265,7 +265,7 @@ abstract class Silva_Backend extends Curry_Backend
                 } elseif ( ($tablename = $this->isImportCsvView()) ) {
                     $this->defaultImportCsvViewHandler($tablename);
                 } else {
-                    throw new Silva_Exception("Undefined view handler: where have you defined show{$viewname}?");
+                    throw new Silva_Exception("View not registered or view handler show{$viewname} not defined.");
                 }
             }
             $this->postShow();
