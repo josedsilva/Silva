@@ -435,18 +435,24 @@ class Silva_Form extends Curry_Form
     /**
      * Return an array of "primaryString"s or Json encoded strings of the foreign object.
      * @param ColumnMap $foreignColumn
+     * @param string $locale
+     * @param boolean $showNullOption Whether to include "[-- Select %FOREIGN_TABLENAME% --]" in options?
      */
-    protected static function getMultiOptionsForFk(ColumnMap $foreignColumn, $locale = null)
+    public static function getMultiOptionsForFk(ColumnMap $foreignColumn, $locale = null, $showNullOption = true)
     {
         $foreignTableMap = $foreignColumn->getRelation()->getForeignTable();
         $foreignTablename = $foreignTableMap->getPhpName();
         $q = PropelQuery::from($foreignTablename);
-        if (($locale !== null) && Silva_Propel::hasBehavior('i18n', $foreignTableMap)) {
+        if ( ($locale !== null) && Silva_Propel::hasBehavior('i18n', $foreignTableMap) ) {
             $q->joinWithI18n($locale);
         }
+        
         $objs = $q->find();
-        // FIXME null translates to 0 (zero). Should we keep -1 instead?
-        $list = array(null => "[-- Select {$foreignTablename} --]");
+        $list = array();
+        if ($showNullOption) {
+            $list[0] = "[-- Select {$foreignTablename} --]";
+        }
+        
         foreach ($objs as $obj) {
             $list[$obj->getPrimaryKey()] = method_exists($obj, '__toString') ? $obj->__toString() : Zend_Json::prettyPrint(Zend_Json::encode($obj->toArray()), array('indent' => ' '));
         }

@@ -524,11 +524,81 @@ class Silva_View_Grid extends Silva_View_BaseModel
     
     /**
      * Setup auto filters for this view.
-     * @param array $filterMap
+     * @param array|null $filterMap
      */
-    public function setAutoFilters(array $filterMap)
+    public function setAutoFilters($filterMap = null)
     {
+        $filterMap = ($filterMap === null) ? $this->prepareAutoFilters() : $this->formatAutoFilters($filterMap);
         $this->autoFilterMap = $filterMap;
+    }
+    
+    protected function prepareAutoFilters()
+    {
+        $filters = array();
+        foreach ($this->tableMap->getRelations() as $relMap) {
+            // skip category relation since this view is already filtered by category
+            if ($this->catRelationMap !== null && $this->catRelationMap === $relMap) {
+                continue;
+            }
+            
+            if ($relMap->getType() !== RelationMap::MANY_TO_ONE && $relMap->getType() !== RelationMap::MANY_TO_MANY) {
+                continue;
+            }
+            
+            $localRefs = $relMap->getLocalColumns();
+            $localRef = $localRefs[0];
+            $filters[strtolower($localRef->getName())] = array(Silva_Form::getMultiOptionsForFk($localRef, $this->locale, false), "Filter by {$relMap->getName()}", "[ All {$relMap->getName()}s ]");
+        }
+        
+        return $filters;
+    }
+    
+    protected function formatAutoFilters(array $filterMap)
+    {
+        $filters = array();
+        foreach ($filterMap as $k => $v) {
+            $multiOptions = null;
+            $label = null;
+            $nullOptionText = null;
+            if (is_int($k)) {
+                $col_name = $v;
+            } else {
+                $col_name = $k;
+                if (is_array($v[0])) {
+                    $multiOptions = $v[0];
+                } else {
+                    $label = $v[0];
+                }
+                
+                if (isset($v[1])) {
+                    if (is_array($v[0])) {
+                        $label = $v[1];
+                    } else {
+                        $nullOptionText = $v[1];
+                    }
+                }
+                
+                if (isset($v[2])) {
+                    $nullOptionText = $v[2];
+                }
+            }
+            
+            if ($multiOptions === null) {
+                $colMap = $this->tableMap->getColumn($col_name);
+                $relMap = $colMap->getRelation();
+                $multiOptions = Silva_Form::getMultiOptionsForFk($colMap, $this->locale, false);
+            }
+            
+            if ($label === null) {
+                $colMap = $this->tableMap->getColumn($col_name);
+                $relMap = $colMap->getRelation();
+                $label = "Filter by {$relMap->getName()}";
+            }
+            
+            $filters[$col_name] = array($multiOptions, $label, $nullOptionText);
+        }
+        
+        return $filters;
     }
     
     /**
