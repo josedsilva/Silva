@@ -635,5 +635,14 @@ class Silva_View_Grid extends Silva_View_BaseModel
         
         $this->setFilterForm(self::getFilterForm($elements));
     }
+    
+    /**
+     * Return the active category model object for the view.
+     * @return BaseObject|null
+     */
+    public function getActiveCategoryObject()
+    {
+        return ($this->catRelationMap !== null) ? PropelQuery::from($this->getCategoryTablename())->findPk($_GET[$this->getCategoryForeignReferenceName()]) : null;
+    }
 
 } //Silva_View_Grid

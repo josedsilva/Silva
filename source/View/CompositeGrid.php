@@ -54,4 +54,41 @@ class Silva_View_CompositeGrid extends Silva_View_Grid
         return $query;
     }
     
+    public function getActiveCategoryObject()
+    {
+        $fk = unserialize($_GET[strtolower($this->compositeTableMap->getName()) . '_id']);
+        return PropelQuery::from($this->compositeTableMap->getPhpName())->findPk($fk);
+    }
+    
+    public function getCategoryLocalReference()
+    {
+        return null;
+    }
+
+    public function getCategoryLocalReferenceName()
+    {
+        return null;
+    }
+
+    public function getCategoryLocalReferencePhpName()
+    {
+        return null;
+    }
+
+    public function getCategoryForeignReference()
+    {
+        return null;
+    }
+
+    public function getCategoryForeignReferenceName()
+    {
+        return null;
+    }
+
+    public function getCategoryForeignReferencePhpName()
+    {
+        return null;
+    }
+    
+    
 } // Silva_View_CompositeGrid
