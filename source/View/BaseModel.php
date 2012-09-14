@@ -89,6 +89,15 @@ abstract class Silva_View_BaseModel extends Silva_View
     {
         return $this->tableMap->getPhpName();
     }
+    
+    /**
+     * Return the TableMap of the model associated with this view
+     * @return TableMap
+     */
+    public function getTableMap()
+    {
+        return $this->tableMap;
+    }
 
     /**
      * Return the classname belonging to this tableMap.
@@ -161,6 +170,24 @@ abstract class Silva_View_BaseModel extends Silva_View
     {
         return ($this->catRelationMap !== null) ? $this->catRelationMap->getForeignTable()->getPhpName() : null;
     }
+    
+    /**
+     * Return the TableMap of the category model associated with the view
+     * @return TableMap|null
+     */
+    public function getCategoryTableMap()
+    {
+        return ($this->catRelationMap !== null) ? $this->catRelationMap->getForeignTable() : null;
+    }
+    
+    /**
+     * Return the category RelationMap
+     * @return RelationMap|null
+     */
+    public function getCategoryRelationMap()
+    {
+        return $this->catRelationMap;
+    }
 
     /**
      * Whether the category table has composite primary keys
@@ -203,6 +230,10 @@ abstract class Silva_View_BaseModel extends Silva_View
         return $this->getCategoryLocalReference()->getPhpName();
     }
 
+    /**
+     * Return a ColumnMap object of the category's foreign reference column.
+     * @return ColumnMap
+     */
     public function getCategoryForeignReference()
     {
         $foreignRefs = $this->catRelationMap->getForeignColumns();
@@ -210,11 +241,19 @@ abstract class Silva_View_BaseModel extends Silva_View
         return $foreignRef;
     }
 
+    /**
+     * Return the schema name of the category's foreign reference.
+     * @return string
+     */
     public function getCategoryForeignReferenceName()
     {
         return strtolower($this->getCategoryForeignReference()->getName());
     }
 
+    /**
+     * Return the PhpName of the category's foreign reference.
+     * @return string
+     */
     public function getCategoryForeignReferencePhpName()
     {
         return $this->getCategoryForeignReference()->getPhpName();

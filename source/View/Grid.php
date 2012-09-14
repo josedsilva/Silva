@@ -550,6 +550,10 @@ class Silva_View_Grid extends Silva_View_BaseModel
             $filters[strtolower($localRef->getName())] = array(Silva_Form::getMultiOptionsForFk($localRef, $this->locale, false), "Filter by {$relMap->getName()}", "[ All {$relMap->getName()}s ]");
         }
         
+        if (empty($filters)) {
+            return null;
+        }
+        
         return $filters;
     }
     
