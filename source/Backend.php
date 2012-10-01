@@ -500,11 +500,8 @@ abstract class Silva_Backend extends Curry_Backend
      */
     protected function pushView($viewname)
     {
-        trace(__METHOD__);
         $viewStack = $this->getViewStack();
         if (! empty($viewStack)) {
-            trace($viewStack);
-            //$offset = Silva_Array::array_key_index($viewname, $this->viewMap);
             $offset = Silva_Array::array_key_index($viewname, $viewStack);
             if ($offset !== false) {
                 array_splice($viewStack, $offset);

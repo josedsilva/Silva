@@ -25,13 +25,18 @@
  * @version
  *
  */
-abstract class Silva_Helpers
+class Silva_Helpers
 {
     const TEMP_PATH = 'content/temp/';
 
-    public function __construct()
+    private function __construct()
     {
-        throw new Exception(__CLASS__ . " should not be instantiated.");
+        
+    }
+    
+    private function __clone()
+    {
+        
     }
 
     /**
