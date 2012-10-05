@@ -31,9 +31,11 @@ final class Common_Backend_SilvaGenerator_Generator extends Curry_Backend
     
     const OPT_GRIDINIT_LEAFVIEWS = 'generate_gridinit_handler_for_leaf_view';
     const OPT_FORMELMSINIT = 'generate_formelminit_handler';
+    const OPT_DOCCOMMENTS = 'generate_doc_comments';
     protected $options = array(
         self::OPT_GRIDINIT_LEAFVIEWS => false,
         self::OPT_FORMELMSINIT => true,
+        self::OPT_DOCCOMMENTS => true,
     );
     
     public static function getName() {
@@ -120,6 +122,10 @@ HTML;
                     'value' => $this->options[self::OPT_FORMELMSINIT],
                     'description' => 'Allow Curry_Form_Elements',
                 )),
+                'gen_doc_comments' => array('checkbox', array(
+                    'label' => 'Generate documentation comments',
+                    'value' => $this->options[self::OPT_DOCCOMMENTS],
+                )),
                 'apply' => array('submit', array('label' => 'Apply')),
             ),
         ));
@@ -134,6 +140,7 @@ HTML;
             // populate options
             $this->options[self::OPT_GRIDINIT_LEAFVIEWS] = $values['options']['gridinit_for_leafview'];
             $this->options[self::OPT_FORMELMSINIT] = $values['options']['formelmsinit'];
+            $this->options[self::OPT_DOCCOMMENTS] = $values['options']['gen_doc_comments'];
             
             $rootTableMap = PropelQuery::from($values['root_table'])->getTableMap();
             $this->generateCode($values, $rootTableMap);

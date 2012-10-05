@@ -138,8 +138,7 @@ abstract class Silva_View_BaseModel extends Silva_View
     protected function getPkName()
     {
         $cmPks = $this->tableMap->getPrimaryKeys();
-        $isCompositeKey = (boolean) (count($cmPks) > 1);
-        if ($isCompositeKey) {
+        if (count($cmPks) > 1) {
             $pkName = strtolower($this->tableMap->getName()) . '_id';
         } else {
             reset($cmPks);
@@ -158,7 +157,13 @@ abstract class Silva_View_BaseModel extends Silva_View
     protected function getPkPhpName()
     {
         $cmPks = $this->tableMap->getPrimaryKeys();
-        $pkPhpName = (count($cmPks) > 1) ? (strtolower($this->getTablename()) . 'Id') : strtolower($cmPks->getPhpName());
+        if (count($cmPks) > 1) {
+            $pkPhpName = $this->getTablename() . 'Id';
+        } else {
+            reset($cmPks);
+            $cm = current($cmPks);
+            $pkPhpName = $cm->getPhpName();
+        }
         return $pkPhpName;
     }
 

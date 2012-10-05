@@ -17,12 +17,14 @@
  *
  */
 /**
- * Define a composite grid view
+ * Define a composite grid view.
+ * A composite grid view is a view that is visited from a previous grid view having composite primary keys.
+ * Since the parent view used composite primary keys, the flexigrid has passed the serialized primary key to this view.
  *
  * @category    Curry
  * @package     Silva
  * @author      Jose Francisco D'Silva
- * @version
+ * @version     
  *
  */
 class Silva_View_CompositeGrid extends Silva_View_Grid
@@ -30,6 +32,13 @@ class Silva_View_CompositeGrid extends Silva_View_Grid
     protected $compositeTableMap = null;
     protected static $defaultOptions = array();
     
+    /**
+     * The constructor...
+     * @param TableMap|string $tableMap  Table associated with this view (may or maynot have composite primary keys)
+     * @param TableMap|string $compositeTableMap  The table associated with parent view (the table must have composite primary keys).
+     * @param Curry_Backend $backend
+     * @param array $options
+     */
     public function __construct($tableMap, $compositeTableMap, Curry_Backend $backend, array $options = array())
     {
         $this->extendOptions(self::$defaultOptions);
@@ -54,6 +63,9 @@ class Silva_View_CompositeGrid extends Silva_View_Grid
         return $query;
     }
     
+    /**
+     * Return the related object from the parent view 
+     */
     public function getActiveCategoryObject()
     {
         $fk = unserialize($_GET[strtolower($this->compositeTableMap->getName()) . '_id']);

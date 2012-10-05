@@ -34,11 +34,6 @@ class Silva_Helpers
         
     }
     
-    private function __clone()
-    {
-        
-    }
-
     /**
      * Return the temporary path.
      * If path does not exist it will be created.

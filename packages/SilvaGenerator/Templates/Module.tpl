@@ -4,6 +4,8 @@
  * @category   Curry
  * @name       {{ SG.ModuleClass }}
  * @author     {{ SG.ModuleAuthor | default('Enter author name here...') | raw }}
+ *
+ * @see        https://github.com/josedsilva/Silva/wiki/Documentation
  */
  class {{ SG.ModuleClass }} extends Silva_Backend
 {
@@ -18,19 +20,24 @@
     }
     
     {% if SG.Options[constant(SG.Self ~ '::OPT_FORMELMSINIT')] %}
+    {% if SG.Options[constant(SG.Self ~ '::OPT_DOCCOMMENTS')] %}
     /**
      * Customize Silva_Form fields.
      * 
-     * @param Silva_Form $sf Reference to the Silva_Form object in the current context.
+     * @param Silva_Form $form    Reference to Silva_Form in the current context.
      * @return array|null
+     *
      * @see https://github.com/josedsilva/Silva/wiki/Advanced-Features
      */
-    public function onFormElementsInit(Silva_Form &$sf) {
+    {% endif %}
+    public function onFormElementsInit(Silva_Form &$form) {
         $ret = null;
-        switch($sf->getTablename()) {
-            //case 'Enter TablePhpName...':
+        switch($form->getTablename()) {
+            //case 'TablePhpName':
                 //$ret = array(
-                    // fieldPhpNames
+                    // fieldPhpName => 'CurryFormElement',
+                    // fieldPhpName => array('CurryFormElement', array('label' => 'Some text', ...)),
+                    // fieldPhpName => array('label' => 'Some text', ...),
                 //);
                 //break;
         }
@@ -40,31 +47,31 @@
     {% endif %}
     
     {% for sgView in SG.Views %}
-        {% if sgView.HasChildViews or SG.Options[constant(SG.Self ~ '::OPT_GRIDINIT_LEAFVIEWS')]  %}
-            /**
-             * Customize grid for view associated with model {{ sgView.TableName }}
-             * 
-             * @param Silva_View $sv  The view object.
-             * @see https://github.com/josedsilva/Silva/wiki/Documentation
-             */
-            protected function on{{ sgView.TableName }}GridInit(Silva_View $sv) {
-                $buttons = array(
-                {% for sgButton in sgView.Buttons %}
-                    {% if sgButton.AEDS %}
-                        {{ sgButton.AEDS }},
-                    {% else %}
-                        array(
-                            'caption' => '{{ sgButton.RelationName }}s',
-                            'url' => url('', array('module', 'view' => 'Main{{ sgButton.RelationName }}s')),
-                        ),
-                    {% endif %}
-                {% endfor %}
-                );
-                
-                $grid = $sv->getGrid($buttons);
-            }
-            
-        {% endif %}
+    {% if sgView.HasChildViews or SG.Options[constant(SG.Self ~ '::OPT_GRIDINIT_LEAFVIEWS')]  %}
+    {% if SG.Options[constant(SG.Self ~ '::OPT_DOCCOMMENTS')] %}
+    /**
+     * Customize the view associated with model {{ sgView.TableName }}
+     * @param Silva_View $vw  The view object.
+     */
+    {% endif %}
+    public function on{{ sgView.TableName }}GridInit(Silva_View $vw) {
+        $buttons = array(
+        {% for sgButton in sgView.Buttons %}
+            {% if sgButton.AEDS %}
+                {{ sgButton.AEDS }},
+            {% else %}
+                array(
+                    'caption' => '{{ sgButton.RelationName }}s',
+                    'url' => url('', array('module', 'view' => 'Main{{ sgButton.RelationName }}s')),
+                ),
+            {% endif %}
+        {% endfor %}
+        );
+        
+        $grid = $vw->getGrid($buttons);
+    }
+    
+    {% endif %}
     {% endfor %}
     
 } // {{ SG.ModuleClass }}
