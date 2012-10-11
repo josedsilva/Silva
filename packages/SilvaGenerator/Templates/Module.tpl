@@ -14,7 +14,11 @@
         
         $this->setViews(array(
             {% for sgView in SG.Views %}
-            new Silva_View_Grid('{{ sgView.TableName }}', {% if sgView.CatRelationName %}'{{ sgView.CatRelationName }}'{% else %}null{% endif %}, $this),
+            new Silva_View_Grid('{{ sgView.TableName }}', {% if sgView.CatRelationName %}'{{ sgView.CatRelationName }}'{% else %}null{% endif %}, $this{% if sgView.ViewOptions is not empty %}, array(
+            	{% for k,v in sgView.ViewOptions %}
+            	'{{ k }}' => {{ v }},
+            	{% endfor %}
+            ){% endif %}),
             {% endfor %}
         ));
     }
@@ -55,6 +59,8 @@
      */
     {% endif %}
     public function on{{ sgView.TableName }}GridInit(Silva_View $vw) {
+    		$vw->setDescription("Manage {{ sgView.TableName ~ 's'}}{% if sgView.CatRelationName %} for {$vw->getActiveCategoryObject()}{% endif %}");
+    		{% if sgView.HasChildViews %}
         $buttons = array(
         {% for sgButton in sgView.Buttons %}
             {% if sgButton.AEDS %}
@@ -67,8 +73,14 @@
             {% endif %}
         {% endfor %}
         );
-        
         $grid = $vw->getGrid($buttons);
+        {% else %}
+        $grid = $vw->getGrid();
+        {% endif %}
+        
+        {% if SG.Options[constant(SG.Self ~ '::OPT_TIDYGRID')] %}
+        $vw->tidyGrid();
+        {% endif %}
     }
     
     {% endif %}

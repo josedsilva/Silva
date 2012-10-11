@@ -144,7 +144,7 @@ class Silva_View_Grid extends Silva_View_BaseModel
 
         // Buttons must be affixed to the flexigrid only after the flexigrid setup is completed.
         $this->addButtons($buttons);
-
+        
         return $this->grid;
     }
 
@@ -404,7 +404,7 @@ class Silva_View_Grid extends Silva_View_BaseModel
         if (! $this->isGridDefined()) {
             $grid = $this->getGrid();
         }
-
+        
         if (isset($_GET['json'])) {
             $jsonHook = str_replace('%TABLENAME%', $this->getTablename(), Silva_Event::EVENT_ON_JSON);
             if (method_exists($this->backend, $jsonHook)) {
@@ -422,6 +422,51 @@ class Silva_View_Grid extends Silva_View_BaseModel
         $this->showFilterForm();
         $this->showDescription();
         $this->addMainContent($this->grid->getHtml());
+    }
+    
+    /**
+     * Hide unnecessary fields in this grid.
+     * The grid shall be defined before the method is called.
+     */
+    public function tidyGrid()
+    {
+        if (! $this->isGridDefined()) {
+            return;
+        }
+        
+        // hide foreign-key fields
+        foreach ($this->tableMap->getRelations() as $relMap) {
+            // ignore I18n relations
+            if (strrpos($relMap->getName(), 'I18n') !== false) {
+                trace_notice(__METHOD__.': Skipped I18n relation: '.$relMap->getName());
+                continue;
+            }
+            // ignore ONE_TO_MANY relations
+            if ($relMap->getType() === RelationMap::ONE_TO_MANY) {
+                trace_notice(__METHOD__.': Skipped ONE_TO_MANY relation: '.$relMap->getName());
+                continue;
+            }
+            
+            $colMaps = $relMap->getLocalColumns();
+            $cm = array_shift($colMaps);
+            $this->grid->setColumnOption(strtolower($cm->getName()), 'hide', true);
+            if ( (null !== $this->catRelationMap) && ($this->getCategoryLocalReferencePhpName() == $cm->getPhpName()) ) {
+                trace_notice(__METHOD__.': Skipped category column: '.$this->getCategoryLocalReferenceName());
+                continue;
+            }
+            
+            $newCol = strtolower($relMap->getForeignTable()->getName());
+            $this->grid->addColumn($newCol, $relMap->getName(), array('sortable' => false));
+            $fn = 'return $o->get'.$relMap->getName().'();';
+            $this->grid->setColumnCallback($newCol, create_function('$o', $fn));
+        }
+        
+        // hide slug column
+        $sluggable = Silva_Propel::getBehavior('sluggable', $this->tableMap);
+        if (! empty($sluggable)) {
+            trace_notice(__METHOD__.': Slug column hidden');
+            $this->grid->setColumnOption($sluggable['slug_column'], 'hide', true);
+        }
     }
 
     /**

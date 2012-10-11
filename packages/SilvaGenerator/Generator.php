@@ -32,10 +32,12 @@ final class Common_Backend_SilvaGenerator_Generator extends Curry_Backend
     const OPT_GRIDINIT_LEAFVIEWS = 'generate_gridinit_handler_for_leaf_view';
     const OPT_FORMELMSINIT = 'generate_formelminit_handler';
     const OPT_DOCCOMMENTS = 'generate_doc_comments';
+    const OPT_TIDYGRID = 'tidy_grid';
     protected $options = array(
         self::OPT_GRIDINIT_LEAFVIEWS => false,
         self::OPT_FORMELMSINIT => true,
         self::OPT_DOCCOMMENTS => true,
+        self::OPT_TIDYGRID => false, // whether to tidy the grid?
     );
     
     public static function getName() {
@@ -126,6 +128,10 @@ HTML;
                     'label' => 'Generate documentation comments',
                     'value' => $this->options[self::OPT_DOCCOMMENTS],
                 )),
+                'tidy_grid' => array('checkbox', array(
+                    'label' => 'Tidy grid?',
+                    'value' => $this->options[self::OPT_TIDYGRID],
+                )),
                 'apply' => array('submit', array('label' => 'Apply')),
             ),
         ));
@@ -141,6 +147,7 @@ HTML;
             $this->options[self::OPT_GRIDINIT_LEAFVIEWS] = $values['options']['gridinit_for_leafview'];
             $this->options[self::OPT_FORMELMSINIT] = $values['options']['formelmsinit'];
             $this->options[self::OPT_DOCCOMMENTS] = $values['options']['gen_doc_comments'];
+            $this->options[self::OPT_TIDYGRID] = $values['options']['tidy_grid'];
             
             $rootTableMap = PropelQuery::from($values['root_table'])->getTableMap();
             $this->generateCode($values, $rootTableMap);
@@ -280,11 +287,17 @@ HTML;
                 }
             }
             
+            $viewOptions = array();
+            if ($vw->tableHasCompositePk()) {
+                $viewOptions['ignorePrimaryKeys'] = 'false';
+            }
+            
             $views[] = array(
                 'TableName' => $vw->getTablename(),
                 'CatRelationName' => $vw->getCategoryRelationMap() ? $vw->getCategoryRelationMap()->getName() : null,
                 'HasChildViews' => (boolean) count($relMaps),
                 'Buttons' => $buttons,
+                'ViewOptions' => $viewOptions,
             );
         }
         

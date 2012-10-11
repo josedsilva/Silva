@@ -568,6 +568,7 @@ class Silva_Form extends Curry_Form
     protected function getMultiForm(ColumnMap $column, $fieldName, $options)
     {
         $element = 'text';
+        $legend = null;
         $v = (array) $this->colElmMap[$column->getPhpName()];
         array_shift($v); //remove topmost item
         if (! empty($v)) {
@@ -577,7 +578,13 @@ class Silva_Form extends Curry_Form
                 $element = $t;
                 // user-defined options specified
                 if (! empty($v)) {
-                    Curry_Array::extend($options, array_pop($v));
+                    // is there a legend option?
+                    $opts = array_pop($v);
+                    if (array_key_exists('legend', $opts)) {
+                        $legend = $opts['legend'];
+                        unset($opts['legend']);
+                    }
+                    Curry_Array::extend($options, $opts);
                 }
             } elseif (is_array($t)) {
                 // user-defined options specified
@@ -591,7 +598,7 @@ class Silva_Form extends Curry_Form
         
         // create multiform
         $multiForm = new Curry_Form_MultiForm(array(
-            'legend' => $column->getPhpName(),
+            'legend' => $legend ? $legend : $column->getPhpName(),
             'cloneTarget' => $dynaForm,
             'defaults' => array(),
         ));
