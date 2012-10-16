@@ -77,10 +77,6 @@
         {% else %}
         $grid = $vw->getGrid();
         {% endif %}
-        
-        {% if SG.Options[constant(SG.Self ~ '::OPT_TIDYGRID')] %}
-        $vw->tidyGrid();
-        {% endif %}
     }
     
     {% endif %}

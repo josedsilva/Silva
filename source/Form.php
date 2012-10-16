@@ -123,6 +123,7 @@ class Silva_Form extends Curry_Form
             
             $val = $values[$elname];
             if ($column->getType() === PropelColumnTypes::PHP_ARRAY) {
+                $val = $values["{$elname}_form"];
                 if ($val === null) {
                     $val = array();
                 } elseif (is_string($val)) {
@@ -319,7 +320,7 @@ class Silva_Form extends Curry_Form
      */
     public function ignoreColumns(array $behaviorsOrColumns)
     {
-        Curry_Array::extend($this->ignoredColumns, $behaviorsOrColumns);
+        Silva_Array::extend($this->ignoredColumns, $behaviorsOrColumns);
     }
 
     /**
@@ -377,10 +378,10 @@ class Silva_Form extends Curry_Form
                     reset($elm);
                     if (is_int(key($elm))) {
                         // case 1.
-                        return $this->createElement(array_shift($elm), $fieldName, Curry_Array::extend($defaultOptions, array_pop($elm)));
+                        return $this->createElement(array_shift($elm), $fieldName, Silva_Array::extend($defaultOptions, array_pop($elm)));
                     } else {
                         // case 2.
-                        $defaultOptions = Curry_Array::extend($defaultOptions, $elm);
+                        $defaultOptions = Silva_Array::extend($defaultOptions, $elm);
                     }
                 }
             }
@@ -576,19 +577,19 @@ class Silva_Form extends Curry_Form
             if (is_string($t)) {
                 // user-defined element specified
                 $element = $t;
-                // user-defined options specified
-                if (! empty($v)) {
-                    // is there a legend option?
-                    $opts = array_pop($v);
-                    if (array_key_exists('legend', $opts)) {
-                        $legend = $opts['legend'];
-                        unset($opts['legend']);
-                    }
-                    Curry_Array::extend($options, $opts);
-                }
+                // extract user-defined options
+                $v = array_pop($v);
             } elseif (is_array($t)) {
-                // user-defined options specified
-                Curry_Array::extend($options, $t);
+                $v = (array) $t;
+            }
+            
+            if (! empty($v) && is_array($v)) {
+                // is there a legend option?
+                if (array_key_exists('legend', $v)) {
+                    $legend = $v['legend'];
+                    unset($v['legend']);
+                }
+                Silva_Array::extend($options, $v);
             }
         }
         

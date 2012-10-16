@@ -84,6 +84,8 @@ class Silva_View_Grid extends Silva_View_BaseModel
         ),
         // flexigrid-specific options. @see Curry_Flexigrid.
         'gridOptions' => array(),
+        // whether to tidy the grid in this view?
+        'tidyGrid' => false,
     );
 
     public function __construct($tableMap, $catRelationMap = null, Curry_Backend $backend, array $options = array())
@@ -144,6 +146,12 @@ class Silva_View_Grid extends Silva_View_BaseModel
 
         // Buttons must be affixed to the flexigrid only after the flexigrid setup is completed.
         $this->addButtons($buttons);
+        
+        if ($this->options['tidyGrid']) {
+            $this->tidyGrid();
+            // execute the method once only
+            $this->options['tidyGrid'] = false;
+        }
         
         return $this->grid;
     }
@@ -428,9 +436,9 @@ class Silva_View_Grid extends Silva_View_BaseModel
      * Hide unnecessary fields in this grid.
      * The grid shall be defined before the method is called.
      */
-    public function tidyGrid()
+    protected function tidyGrid()
     {
-        if (! $this->isGridDefined()) {
+        if (! $this->isGridDefined() || ! $this->options['tidyGrid']) {
             return;
         }
         

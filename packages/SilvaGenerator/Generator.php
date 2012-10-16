@@ -292,6 +292,10 @@ HTML;
                 $viewOptions['ignorePrimaryKeys'] = 'false';
             }
             
+            if ($this->options[self::OPT_TIDYGRID]) {
+                $viewOptions['tidyGrid'] = 'true';
+            }
+            
             $views[] = array(
                 'TableName' => $vw->getTablename(),
                 'CatRelationName' => $vw->getCategoryRelationMap() ? $vw->getCategoryRelationMap()->getName() : null,

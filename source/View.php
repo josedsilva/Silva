@@ -144,7 +144,7 @@ abstract class Silva_View
      */
     protected function extendOptions(array $extenderOptions)
     {
-        $this->options = Curry_Array::extend($this->options, $extenderOptions);
+        $this->options = Silva_Array::extend($this->options, $extenderOptions);
     }
 
     /**

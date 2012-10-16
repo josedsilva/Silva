@@ -73,7 +73,7 @@ abstract class Silva_Backend extends Curry_Backend
     {
         parent::__construct();
         $this->options = self::$defaultOptions;
-        $this->options = Curry_Array::extend($this->options, $options);
+        $this->options = Silva_Array::extend($this->options, $options);
         $this->embedCSS();
         $this->embedJS();
     }
