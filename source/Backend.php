@@ -344,10 +344,18 @@ abstract class Silva_Backend extends Curry_Backend
             ->findPk($pk);
         
         $phpSetter = Silva_Helpers::getPhpSetterString($_GET['g']);
-        $obj->{$phpSetter}($_GET['v']);
-        $obj->save();
+        if ( ($pos = strrpos($phpSetter, '->')) === false) {
+            $obj->{$phpSetter}($_GET['v']);
+            $obj->save();
+        } else {
+            $getter = substr($phpSetter, 0, $pos-2); // remove the last parentheses
+            $setter = substr($phpSetter, $pos+2); // skip the preceding '->'
+            $o = $obj->{$getter}();
+            $o->{$setter}($_GET['v']);
+            $o->save();
+        }
     }
-
+    
     /**
      * Grid manipulation callback handler.
      * Prototype: Silva_Grid on%TABLENAME%GridInit(Silva_View &$vw);
