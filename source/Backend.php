@@ -190,7 +190,7 @@ abstract class Silva_Backend extends Curry_Backend
      */
     public function showBreadcrumbs($viewname = null, $view = null)
     {
-        if (! $this->options['showBreadcrumbs']) {
+        if (isAjax() || ! $this->options['showBreadcrumbs']) {
             return;
         }
         
@@ -245,7 +245,7 @@ abstract class Silva_Backend extends Curry_Backend
             $this->preShow();
             $viewname = $this->getActiveViewname();
             $viewHandler = "show{$viewname}";
-            if ($this->options['showBreadcrumbs']) {
+            if (! isAjax() && $this->options['showBreadcrumbs']) {
                 $this->pushView($viewname);
             }
 
@@ -264,6 +264,8 @@ abstract class Silva_Backend extends Curry_Backend
                     $this->defaultExportCsvViewHandler($tablename);
                 } elseif ( ($tablename = $this->isImportCsvView()) ) {
                     $this->defaultImportCsvViewHandler($tablename);
+                } elseif($this->isEditThumbnailView()) {
+                    $this->handleEditThumbnail();
                 } else {
                     throw new Silva_Exception("View not registered or view handler show{$viewname} not defined.");
                 }
@@ -303,6 +305,11 @@ abstract class Silva_Backend extends Curry_Backend
         }
         return false;
     }
+    
+    protected function isEditThumbnailView()
+    {
+        return ($_GET[self::URL_QUERY_VIEW] == 'EditThumb');
+    }
 
     /**
      * The default view handler.
@@ -324,6 +331,21 @@ abstract class Silva_Backend extends Curry_Backend
         }
         
         $sv->render();
+    }
+    
+    protected function handleEditThumbnail()
+    {
+        $tm = PropelQuery::from($_GET['m'])->getTableMap();
+        $pk = (count($tm->getPrimaryKeys()) > 1) ? unserialize($_GET['pk']) : $_GET['pk'];
+        $obj = PropelQuery::from($_GET['m'])
+            ->_if(isset($_GET['locale']))
+                ->joinWithI18n($_GET['locale'])
+            ->_endif()
+            ->findPk($pk);
+        
+        $phpSetter = Silva_Helpers::getPhpSetterString($_GET['g']);
+        $obj->{$phpSetter}($_GET['v']);
+        $obj->save();
     }
 
     /**
@@ -540,7 +562,7 @@ abstract class Silva_Backend extends Curry_Backend
 .dlg-status .ui-dialog-content {
 	padding: 0.5em 1em !important;
 }
-.dlg-large-image .ui-dialog-content {
+.dlg-image-preview .ui-dialog-content {
   text-align: center;
 }
 form.locale-selector, form.filters {
@@ -563,6 +585,7 @@ CSS;
 
     private function embedJS()
     {
+        $urlEditThumb = url('', array(self::URL_QUERY_MODULE, self::URL_QUERY_LOCALE))->add(array(self::URL_QUERY_VIEW => 'EditThumb'));
         $js = <<<JS
 (function($){
 // Info dialog
@@ -589,14 +612,14 @@ $.util.infoDialog = function(dialogTitle, text, onClose){
  return \$dlg;
 };
 
-// Large image viewer
-$(document).delegate('a.silva-large-image', 'click', function(){
+// Image previewer
+$(document).delegate('a.silva-image-preview', 'click', function(){
   var dialogTitle = 'Image preview';
   var \$dlg = \$('<div title="'+dialogTitle+'"></div>');
   var flexId = \$(this).data('flexid');
   \$dlg.html('<img src="'+\$(this).attr('href')+'" />');
   \$dlg.dialog({
-    dialogClass: 'dlg-large-image',
+    dialogClass: 'dlg-image-preview',
     modal: true,
     position: 'center',
     resizable: true,
@@ -609,6 +632,33 @@ $(document).delegate('a.silva-large-image', 'click', function(){
 	   \$('#'+flexId).flexReload();
 	  }
    });
+   
+  return false;
+});
+
+// Image Editor
+$(document).delegate('a.silva-image-edit', 'click', function(){
+  var \$a = \$(this);
+  var defPath = \$a.attr('href');
+  var flexId = \$a.data('flexid');
+  var getter = \$a.data('getter');
+  var model = (flexId.split('_', 1))[0];
+  var finder = \$.util.openFinder(this, {filter: ['images'], defaultPath: defPath }, {title: 'Select Image for '+model});
+  
+  finder.bind('finder-close', function(e, data){
+  	$('#'+flexId).find('tr.trSelected').removeClass('trSelected');
+  });
+  
+  finder.bind('finder-select', function(e, data){
+  	var \$tr = $('#'+flexId).find('tr.trSelected');
+  	var pk = \$tr.data(\$a.data('pk'));
+  	var url = '$urlEditThumb';
+  	
+  	$.get(url, {m: model, pk: pk, g: getter, v: data}, function(data){
+  		\$('#'+flexId).flexReload();
+    });
+  });
+  
   return false;
 });
 

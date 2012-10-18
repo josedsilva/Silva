@@ -181,59 +181,70 @@ class Silva_Grid extends Curry_Flexigrid_Propel
     }
 
     /**
-     * Return the thumbnail HTML.
+     * Return the HTML to display the thumbnail.
      * Do not use this method outside the class.
      * It's access level is public because it was intended to be a callback method.
+     * 
      * @param string $src
      * @param integer $twd
      * @param integer $tht
      * @param string $flexId
+     * @param string $getter
+     * @param string $pk: The flexigrid's identifier
+     * 
      * @return string
      */
-    public static function getThumbnailHtml($src, $twd, $tht, $flexId)
+    public static function getThumbnailHtml($src, $twd, $tht, $flexId, $getter = '', $pk = '')
     {
-        return $src ? '<a href="' . $src . '" class="silva-large-image" data-flexid=' . $flexId . '><img src="' . self::getThumbnailProcessor($twd, $tht)->processImage($src) . '" /></a>' : '[No Thumbnail]';
+        return $src ? 
+        	'<a href="'.$src.'" class="'.($getter ? 'silva-image-edit' : 'silva-image-preview').'" data-flexid='.$flexId.($getter ? ' data-getter="'.$getter.'" data-pk="'.$pk.'"' : '').'>
+        		<img src="'.self::getThumbnailProcessor($twd, $tht)->processImage($src).'" />
+        	 </a>' : 
+        	 '[No Thumbnail]';
     }
 
     /**
      * Add a column to the flexigrid that shows a thumbnail.
-     * @param string $column: Column name
-     * @param string $display: Column header text
-     * @param string $getter: Propel getter method to get the image path.
-     * @param integer $twd: width of thumbnail in pixels
-     * @param integer $tht: height of thumbnail in pixels
-     * @example $flexigrid->addThumbnail('thumb', 'Thumbnail', 'getProduct()->getImage()');
+     * @param string  $column: Column name
+     * @param string  $display: Column header text
+     * @param string  $getter: Dotted getter to retrieve the image path (e.g. Product.Image)
+     * @param integer $twd: Thumbnail width in pixels
+     * @param integer $tht: Thumbnail height in pixels
+     * @param boolean $previewOnly: Whether to preview or edit image?
+     *  
+     * @example $flexigrid->addThumbnail('thumb', 'Thumbnail', 'Product.Image');
      */
-    public function addThumbnail($column, $display, $getter, $twd = 50, $tht = 50)
+    public function addThumbnail($column, $display, $getter, $twd = 50, $tht = 50, $previewOnly = true)
     {
         $this->addRawColumn($column, $display);
-        $callback = create_function('$o', "return " . __CLASS__ . "::getThumbnailHtml(\$o->{$getter}, $twd, $tht, '{$this->id}');");
+        $phpGetter = Silva_Helpers::getPhpGetterString($getter) . '()';
+        $callback = create_function('$o', "return " . __CLASS__ . "::getThumbnailHtml(\$o->{$phpGetter}, $twd, $tht, '{$this->id}'".($previewOnly ? "" : ",'$getter', '{$this->primaryKey}'").");");
         $this->setColumnCallback($column, $callback);
     }
     
     /**
      * Show thumbnail for a column in this model.
-     * @param $column
-     * @param $display
-     * @param $twd
-     * @param $tht
+     * @param string  $column
+     * @param string|null  $display: The column heading
+     * @param integer $twd: Thumbnail width (in pixels)
+     * @param integer $tht: Thumbnail height (in pixels)
+     * @param boolean $previewOnly: Whether to preview or edit image?
      */
-    public function setThumbnail($column, $display = null, $twd = 50, $tht = 50)
+    public function setThumbnail($column, $display = null, $twd = 50, $tht = 50, $previewOnly = true)
     {
     	if ($display === null) {
     		$display = ucwords(str_replace("_", " ", $column));
     	}
     	
     	$getter = str_replace(" ", '', ucwords(str_replace("_", " ", $column)));
-    	$getter = "get{$getter}()";
-    	$this->addThumbnail($column, $display, $getter, $twd, $tht);
+    	$this->addThumbnail($column, $display, $getter, $twd, $tht, $previewOnly);
     }
 
     /**
      * Add a raw column (non-escaped contents) to the grid.
-     * @param $column
-     * @param $display
-     * @param $columnOptions
+     * @param string $column
+     * @param string $display
+     * @param array  $columnOptions
      */
     public function addRawColumn($column, $display, array $columnOptions = array())
     {
