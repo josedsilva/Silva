@@ -372,10 +372,10 @@ abstract class Silva_View_BaseModel extends Silva_View
         if ($this->options['autoBuildForm']) {
             $silvaForm = $this->getSilvaForm($activeRecord, array($this->getPkName() => $this->tableHasCompositePk() ? serialize($activeRecord->getPrimaryKey()) : $activeRecord->getPrimaryKey()));
             if (method_exists($this->backend, $cbFormHandler)) {
-            	$form = call_user_func(array($this->backend, $cbFormHandler), $activeRecord, $silvaForm);
-            } else {
-            	$form = $silvaForm;
+            	call_user_func_array(array($this->backend, $cbFormHandler), array($activeRecord, $silvaForm));
             }
+            
+            $form = $silvaForm;
         } else {
             // partial form
             if (! method_exists($this->backend, $cbFormHandler)) {
@@ -387,7 +387,8 @@ abstract class Silva_View_BaseModel extends Silva_View
                 $this->getPkName() => $this->tableHasCompositePk() ? serialize($activeRecord->getPrimaryKey()) : $activeRecord->getPrimaryKey()
             ));
             // get user-defined form from the backend module
-            $form = call_user_func(array($this->backend, $cbFormHandler), $activeRecord, $partialForm);
+            call_user_func_array(array($this->backend, $cbFormHandler), array($activeRecord, $partialForm));
+            $form = $partialForm;
         }
 
         return $form;

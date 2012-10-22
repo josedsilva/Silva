@@ -535,7 +535,7 @@ class Silva_Form extends Curry_Form
     protected function preCreateElements()
     {
         if (method_exists($this->backend, Silva_Event::EVENT_ON_FORM_ELEMENTS_INIT)) {
-            $this->colElmMap = call_user_func_array(array($this->backend, Silva_Event::EVENT_ON_FORM_ELEMENTS_INIT), array(&$this));
+            $this->colElmMap = call_user_func_array(array($this->backend, Silva_Event::EVENT_ON_FORM_ELEMENTS_INIT), array($this));
         }
     }
     

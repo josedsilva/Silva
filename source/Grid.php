@@ -217,7 +217,9 @@ class Silva_Grid extends Curry_Flexigrid_Propel
     public function addThumbnail($column, $display, $getter, $twd = 50, $tht = 50, $previewOnly = true)
     {
         $this->addRawColumn($column, $display);
-        $phpGetter = Silva_Helpers::getPhpGetterString($getter) . '()';
+        $phpGetter = join('->', array_map(
+            create_function('$e', 'return "get".$e."()";'), 
+            explode('.', $getter)));
         $callback = create_function('$o', "return " . __CLASS__ . "::getThumbnailHtml(\$o->{$phpGetter}, $twd, $tht, '{$this->id}'".($previewOnly ? "" : ",'$getter', '{$this->primaryKey}'").");");
         $this->setColumnCallback($column, $callback);
     }
@@ -238,6 +240,11 @@ class Silva_Grid extends Curry_Flexigrid_Propel
     	
     	$getter = str_replace(" ", '', ucwords(str_replace("_", " ", $column)));
     	$this->addThumbnail($column, $display, $getter, $twd, $tht, $previewOnly);
+    }
+    
+    public function setEditableThumbnail($column, $display = null, $twd = 50, $tht = 50)
+    {
+        $this->setThumbnail($column, $display, $twd, $tht, false);
     }
 
     /**

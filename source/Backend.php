@@ -337,23 +337,20 @@ abstract class Silva_Backend extends Curry_Backend
     {
         $tm = PropelQuery::from($_GET['m'])->getTableMap();
         $pk = (count($tm->getPrimaryKeys()) > 1) ? unserialize($_GET['pk']) : $_GET['pk'];
-        $obj = PropelQuery::from($_GET['m'])
-            ->_if(isset($_GET['locale']))
-                ->joinWithI18n($_GET['locale'])
-            ->_endif()
-            ->findPk($pk);
-        
-        $phpSetter = Silva_Helpers::getPhpSetterString($_GET['g']);
-        if ( ($pos = strrpos($phpSetter, '->')) === false) {
-            $obj->{$phpSetter}($_GET['v']);
-            $obj->save();
-        } else {
-            $getter = substr($phpSetter, 0, $pos-2); // remove the last parentheses
-            $setter = substr($phpSetter, $pos+2); // skip the preceding '->'
-            $o = $obj->{$getter}();
-            $o->{$setter}($_GET['v']);
-            $o->save();
+        $obj = PropelQuery::from($_GET['m'])->findPk($pk);
+            
+        $arrMethods = explode('.', $_GET['g']);
+        $lastMethod = array_pop($arrMethods);
+        foreach ($arrMethods as $method) {
+            $obj = $obj->{"get{$method}"}();
         }
+        
+        if (isset($_GET['locale']) && Silva_Propel::hasI18nBehavior(PropelQuery::from(get_class($obj))->getTableMap())) {
+            $obj->setLocale($_GET['locale']);
+        }
+        
+        $obj->{"set{$lastMethod}"}($_GET['v']);
+        $obj->save();
     }
     
     /**
@@ -385,7 +382,13 @@ abstract class Silva_Backend extends Curry_Backend
     protected function defaultExportCsvViewHandler($tablename)
     {
         $sv = $this->getViewByTable($tablename);
-        $sv->exportCsv();
+        if (isset($_GET['mode']) && $_GET['mode'] === Silva_View::BUTTON_MODE_SYSTEM) {
+            $grid = $sv->getGrid();
+            $grid->returnExcel();
+            exit();
+        } else {
+            $sv->exportCsv();
+        }
     }
 
     protected function defaultImportCsvViewHandler($tablename)
@@ -570,8 +573,12 @@ abstract class Silva_Backend extends Curry_Backend
 .dlg-status .ui-dialog-content {
 	padding: 0.5em 1em !important;
 }
-.dlg-image-preview .ui-dialog-content {
-  text-align: center;
+.dlg-image-preview .ui-dialog-content {}
+.dlg-image-preview .ui-dialog-content img {
+	max-width: 500px;
+	max-height: 500px;
+	display: block;
+	margin: auto;
 }
 form.locale-selector, form.filters {
 	box-shadow: 0 1px 2px lightgray;
@@ -637,7 +644,7 @@ $(document).delegate('a.silva-image-preview', 'click', function(){
 	    }
 	  },
 	  close: function(event, ui){
-	   \$('#'+flexId).flexReload();
+	   \$('#'+flexId).find('tr.trSelected').removeClass('trSelected');
 	  }
    });
    
@@ -651,11 +658,16 @@ $(document).delegate('a.silva-image-edit', 'click', function(){
   var flexId = \$a.data('flexid');
   var getter = \$a.data('getter');
   var model = (flexId.split('_', 1))[0];
-  var finder = \$.util.openFinder(this, {filter: ['images'], defaultPath: defPath }, {title: 'Select Image for '+model});
-  
-  finder.bind('finder-close', function(e, data){
-  	$('#'+flexId).find('tr.trSelected').removeClass('trSelected');
-  });
+  var finder = \$.util.openFinder(this, 
+  	{
+  		filter: ['images'], defaultPath: defPath 
+    }, 
+    {
+    	title: 'Select Image for '+model,
+    	close: function(event, ui){
+    		$('#'+flexId).find('tr.trSelected').removeClass('trSelected');
+    	}
+    });
   
   finder.bind('finder-select', function(e, data){
   	var \$tr = $('#'+flexId).find('tr.trSelected');

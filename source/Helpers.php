@@ -50,37 +50,4 @@ class Silva_Helpers
         return $fullPath ? $fullTempPath : self::TEMP_PATH;
     }
     
-    /**
-     * Return a Php getter string
-     * @param string $dottedString
-     */
-    public static function getPhpGetterString($dottedString) {
-        $a = explode('.', $dottedString);
-        $lastElm = array_pop($a);
-        if (! empty($a)) {
-            $a = array_map(create_function('$e', 'return "get{$e}()";'), $a);
-            $s = implode('->', $a);
-            return $s.'->'."get{$lastElm}";
-        }
-        
-        return "get{$lastElm}";
-    }
-    
-    /**
-     * Return a Php setter string
-     * @param string $dottedString
-     */
-    public static function getPhpSetterString($dottedString) {
-        $a = explode('.', $dottedString);
-        $lastElm = array_pop($a);
-        if (! empty($a)) {
-            $a = array_map(create_function('$e', 'return "get{$e}()";'), $a);
-            $s = implode('->', $a);
-            return $s.'->'."set{$lastElm}";
-        }
-        
-        return "set{$lastElm}";
-    }
-    
-
 } //Silva_Helpers

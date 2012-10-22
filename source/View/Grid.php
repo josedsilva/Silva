@@ -59,6 +59,7 @@ class Silva_View_Grid extends Silva_View_BaseModel
             'buttonOptions' => array(),
         ),
         'ExportCsvButton' => array(
+            'mode' => null,
             'caption' => 'Export',
             'bclass' => 'page_excel',
             'buttonOptions' => array(),
@@ -302,14 +303,24 @@ class Silva_View_Grid extends Silva_View_BaseModel
         ));
 
         if ($this->catRelationMap !== null) {
-            // FIXME verify whether $_GET[local or foreign rf. ?]
-            $catLocalRefName = $this->getCategoryLocalReferenceName();
-            $exportCsvUrl->add(array($catLocalRefName => $_GET[$catLocalRefName]));
+            // FIXME verify whether to use $_GET[local cat. rf. or foreign cat. rf. ?]
+            $exportCsvUrl->add(array(
+                $this->getCategoryLocalReferenceName() => $_GET[$this->getCategoryForeignReferenceName()]
+            ));
         }
-
+        
+        if ($this->locale) {
+            $exportCsvUrl->add(array(Silva_Backend::URL_QUERY_LOCALE => $this->locale));
+        }
+        
         $csvButton = $this->options['ExportCsvButton'];
-        $bclass = (strpos($csvButton['bclass'], 'icon_') === false) ? 'icon_' . $csvButton['bclass'] : $csvButton['bclass'];
-        $this->grid->addLinkButton($csvButton['caption'], $bclass, $exportCsvUrl, -1, (array) $csvButton['buttonOptions']);
+        if ($csvButton['mode'] === self::BUTTON_MODE_SYSTEM) {
+            $exportCsvUrl->add(array('mode' => self::BUTTON_MODE_SYSTEM));
+            $this->grid->addExportExcelButton($exportCsvUrl);
+        } else {
+            $bclass = (strpos($csvButton['bclass'], 'icon_') === false) ? 'icon_' . $csvButton['bclass'] : $csvButton['bclass'];
+            $this->grid->addLinkButton($csvButton['caption'], $bclass, $exportCsvUrl, -1, (array) $csvButton['buttonOptions']);
+        }
     }
 
     protected function addImportCsvButton()

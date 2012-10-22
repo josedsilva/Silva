@@ -82,6 +82,8 @@ abstract class Silva_View
 
     /** Allow a button to return status and show it in an alert box */
     const BUTTON_MODE_STATUS = "button_mode_status";
+    /** Button will exhibit system behavior */
+    const BUTTON_MODE_SYSTEM = "button_mode_system";
     /**#@-*/
 
     const JS_SUBMIT_FORM = 'this.form.submit();';
