@@ -28,13 +28,13 @@
     /**
      * Customize Silva_Form fields.
      * 
-     * @param Silva_Form $form    Reference to Silva_Form in the current context.
+     * @param Silva_Form $form    Reference to Silva_Form in the current context (i.e. the form being shown).
      * @return array|null
      *
      * @see https://github.com/josedsilva/Silva/wiki/Advanced-Features
      */
     {% endif %}
-    public function onFormElementsInit(Silva_Form &$form) {
+    public function onFormElementsInit(Silva_Form $form) {
         $ret = null;
         switch($form->getTablename()) {
             //case 'TablePhpName':
