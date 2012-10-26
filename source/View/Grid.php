@@ -256,7 +256,7 @@ class Silva_View_Grid extends Silva_View_BaseModel
      * Return the url for the Add/Edit button.
      * @return Curry_URL
      */
-    private function getAddEditUrl()
+    protected function getAddEditUrl()
     {
         $editUrl = url('', array(
             Silva_Backend::URL_QUERY_MODULE,

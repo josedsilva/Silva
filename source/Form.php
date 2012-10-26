@@ -113,7 +113,7 @@ class Silva_Form extends Curry_Form
         $this->i18nTableMap = Silva_Propel::getI18nTableMap($this->tableMap);
     }
     
-    private function populateModel($instance, $form, $columns)
+    protected function populateModel($instance, $form, $columns)
     {
         $values = $form->getValues(true);
         foreach ($columns as $elname => $column) {
@@ -157,7 +157,7 @@ class Silva_Form extends Curry_Form
         }
     }
 
-    private function populateElements($instance, $form, $columns, $locale = null)
+    protected function populateElements($instance, $form, $columns, $locale = null)
     {
         if ($locale !== null) {
             $i18nProperties = Silva_Propel::getBehavior("i18n", $this->tableMap);
@@ -496,7 +496,7 @@ class Silva_Form extends Curry_Form
      * @param ColumnMap[] $columns
      * @param $skipColumnFunc
      */
-    private function getElementColumnMap($columns, $skipColumnFunc)
+    protected function getElementColumnMap($columns, $skipColumnFunc)
     {
         $cols = array();
         $ignoredColumns = $this->getIgnoredColumns();
@@ -539,7 +539,7 @@ class Silva_Form extends Curry_Form
         }
     }
     
-    private function addElementsToForm(&$form, $columns)
+    protected function addElementsToForm($form, $columns)
     {
         foreach ($columns as $column) {
             $element = $this->createElementFromColumn($column);

@@ -66,7 +66,7 @@ abstract class Silva_Backend extends Curry_Backend
      * Zend_Session_Namespace object for this module
      * @var Zend_Session_Namespace|null
      */
-    private $_session = null;
+    protected $_session = null;
 
 
     public function __construct(array $options = array())
@@ -360,7 +360,7 @@ abstract class Silva_Backend extends Curry_Backend
      * @param Silva_View $sv
      * @return Silva_Grid|null
      */
-    private function handleGrid(Silva_View &$sv)
+    protected function handleGrid(Silva_View $sv)
     {
         if (! $sv->hasTable()) {
             return;
@@ -499,7 +499,7 @@ abstract class Silva_Backend extends Curry_Backend
         return $json;
     }
 
-    private function &getViewStackSession()
+    protected function &getViewStackSession()
     {
         if ($this->_session !== null) {
             return $this->_session;
@@ -513,14 +513,14 @@ abstract class Silva_Backend extends Curry_Backend
         return $this->_session;
     }
 
-    private function getViewStack()
+    protected function getViewStack()
     {
         $session = $this->getViewStackSession();
         $viewStack = isset($session->viewStack) ? $session->viewStack : array();
         return $viewStack;
     }
 
-    private function saveViewStack($viewStack)
+    protected function saveViewStack($viewStack)
     {
         $session = &$this->getViewStackSession();
         $session->viewStack = $viewStack;
@@ -565,7 +565,7 @@ abstract class Silva_Backend extends Curry_Backend
     /**
      * Inject CSS styles into the <head> of the backend template
      */
-    private function embedCSS()
+    protected function embedCSS()
     {
         $styles = <<<CSS
 <style type="text/css" media="screen,projection">
@@ -598,7 +598,7 @@ CSS;
         self::appendTemplateHead($styles);
     }
 
-    private function embedJS()
+    protected function embedJS()
     {
         $urlEditThumb = url('', array(self::URL_QUERY_MODULE, self::URL_QUERY_LOCALE))->add(array(self::URL_QUERY_VIEW => 'EditThumb'));
         $js = <<<JS

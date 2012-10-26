@@ -28,8 +28,8 @@
 class Silva_Grid extends Curry_Flexigrid_Propel
 {
     protected $tableMap = null;
-    private static $thumbnailProcessor = null;
-    private $url = null;
+    protected static $thumbnailProcessor = null;
+    protected $url = null;
 
     public function __construct(TableMap $tableMap, $url, $options = array(), $query = null, $id = null, $title = null)
     {
@@ -160,7 +160,7 @@ class Silva_Grid extends Curry_Flexigrid_Propel
      * @param integer $twd Width of the thumbnail in pixels
      * @param integer $tht Height of the thumbnail in pixels
      */
-    private static function getThumbnailProcessor($twd = 50, $tht = 50)
+    protected static function getThumbnailProcessor($twd = 50, $tht = 50)
     {
         if (! self::$thumbnailProcessor) {
             if (! class_exists('ImageProcessor')) {
