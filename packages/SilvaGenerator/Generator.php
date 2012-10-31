@@ -17,7 +17,7 @@
  *
  */
 /**
- * Generate code for a Backend module using Silva APIs 
+ * Generate code for a Backend module stub using Silva APIs 
  * 
  * @category   Silva
  * @package    Silva Module Generator
@@ -51,7 +51,7 @@ final class Common_Backend_SilvaGenerator_Generator extends Curry_Backend
     public function showMain() {
         if (! $this->isSilvaInstalled()) {
             $html =<<<HTML
-<p class="message notice">Automagically generate code for a backend module.</p>
+<p class="message notice">Automagically generate code for a backend module stub.</p>
 <p class="message error">Silva was not found with your project installation.</p>
 <pre>
 You must install Silva before you can generate code for a backend module.
@@ -70,7 +70,7 @@ HTML;
             }
             
             $html =<<<HTML
-<p class="message notice">Automagically generate code for a backend module.</p>
+<p class="message notice">Automagically generate code for a backend module stub.</p>
 $form
 HTML;
 
@@ -238,7 +238,7 @@ HTML;
         }
         
         if (($catRelMap->getForeignTable() == $tableMap)) {
-            $status = "Self referential relationship found. Infinite recursion avoided.";
+            $status = "Self referential relationship found. Try using Silva_View_SelfReferential.";
             return true;
         }
     }

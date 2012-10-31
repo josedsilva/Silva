@@ -1,5 +1,6 @@
 /**
  * {{ SG.ModuleDescription | default('Enter module description here...') | raw }}
+ * Module stub generated on {{ date() | date('c') }}
  * 
  * @category   Curry
  * @name       {{ SG.ModuleClass }}
