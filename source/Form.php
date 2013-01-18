@@ -123,7 +123,10 @@ class Silva_Form extends Curry_Form
             
             $val = $values[$elname];
             if ($column->getType() === PropelColumnTypes::PHP_ARRAY) {
-                $val = $values["{$elname}_form"];
+                if (isset($values["{$elname}_form"])) {
+                    $val = $values["{$elname}_form"];
+                }
+                
                 if ($val === null) {
                     $val = array();
                 } elseif (is_string($val)) {
