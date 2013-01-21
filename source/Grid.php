@@ -30,6 +30,7 @@ class Silva_Grid extends Curry_Flexigrid_Propel
     protected $tableMap = null;
     protected static $thumbnailProcessor = null;
     protected $url = null;
+    protected $defaultDialogOptions = array('width'=>600, 'minHeight'=>150/*, 'show' => 'scale', 'hide' => 'scale'*/);
 
     public function __construct(TableMap $tableMap, $url, $options = array(), $query = null, $id = null, $title = null)
     {
@@ -37,10 +38,153 @@ class Silva_Grid extends Curry_Flexigrid_Propel
         $this->url = $url;
         $this->tableMap = $tableMap;
     }
-
+    
+    /**
+     * Behaves just like Curry_Flexigrid::addLinkButton except that it suuports a callback parameter
+     * in $buttonOptions which can be used to selectively continue with further processing or abort operation.
+     * The callback must return a json hash: {'message': 'some optional message', 'abort': true/false}
+     * 
+     * @param $name
+     * @param $bclass
+     * @param $url
+     * @param integer|array $forcePrimaryKey		How many rows must be selected before the operation begins execution?
+     * This value can contain a range such as array('min' => min-value, 'max' => max-value)
+     * @param $buttonOptions
+     */
+		public function addLinkButton($name, $bclass, $url, $forcePrimaryKey = 0, $buttonOptions = array())
+		{
+				if($forcePrimaryKey < 0) {
+					$onPress = "function(com, grid) {
+						window.location.href = '$url';
+					}";
+				} else {
+					$callback = isset($buttonOptions['callback']) ? $buttonOptions['callback'] : '';
+					$callbackUrl = $callback ? url('', array('module', 'view' => $callback, 'locale')) : '';
+					if (is_integer($forcePrimaryKey) && $forcePrimaryKey) {
+					    $fpkExpr = "items.length == {$forcePrimaryKey}";
+					} elseif (is_array($forcePrimaryKey)) {
+					    $fpkExpr = '';
+					    if (isset($forcePrimaryKey['min'])) {
+					        $fpkExpr = "items.length >= {$forcePrimaryKey['min']}";
+					    }
+					    
+					    if (isset($forcePrimaryKey['max'])) {
+					        $fpkExpr .= (isset($forcePrimaryKey['min']) ? " && " : "") . "items.length <= {$forcePrimaryKey['max']}";
+					    }
+					}
+					
+					$onPress = "function(com, grid) {
+						var items = $('.trSelected', grid);
+						".($forcePrimaryKey ? "if({$fpkExpr}) {" : "")."
+							var ids = $.map(items, function(item) { return $.data(item, '{$this->primaryKey}'); });
+							if ('{$callback}'.length) {
+								$.get('{$callbackUrl}', {'id[]': ids}, function(data){
+									if (data.message && data.message.length) {
+										$.util.infoDialog((data.title && data.title.length) ? data.title : '{$callback} says', data.message, function(){
+											if (data.abort) {
+												items.removeClass('trSelected');
+											} else {
+												window.location.href = '$url&' + $.param({'{$this->primaryKey}': ids.length == 1 ? ids[0] : ids});
+											}
+										});
+									} else if (data.abort) {
+										alert('The operation was aborted');
+										items.removeClass('trSelected');
+									} else if (! data.abort) {
+										window.location.href = '$url&' + $.param({'{$this->primaryKey}': ids.length == 1 ? ids[0] : ids});
+									}
+								});
+							} else {
+								window.location.href = '$url&' + $.param({'{$this->primaryKey}': ids.length == 1 ? ids[0] : ids});
+							}
+						".($forcePrimaryKey ? "}" : "")."
+					}";
+				}
+				
+				$this->addButton($name, array_merge($buttonOptions, array('bclass' => $bclass, 'onpress' => new Zend_Json_Expr($onPress))));
+		}
+		
+    /**
+     * Json encode data. Handles encoding and functions.
+     *
+     * @param mixed $value
+     * @param string $encoding
+     * @return string
+     */
+    protected static function json_encode($value, $encoding = 'utf-8')
+    {
+    	$value; // if I remember correctly this had to go here to prevent a crash in some php-version :)
+    	// make sure we convert all strings to utf8
+    	array_walk_recursive($value, create_function('&$value', '
+    		if(is_string($value))
+    			$value = Curry_String::toEncoding($value, "utf-8");
+    		if($value instanceof Zend_Json_Expr)
+    			$value = new Zend_Json_Expr(Curry_String::toEncoding((string)$value, "utf-8"));
+    	'));
+    	// return string in proper encoding
+    	return iconv('utf-8', $encoding, Zend_Json::encode($value, false, array('enableJsonExprFinder' => true)));
+    }
+    
+    public function addDialogButton($name, $bclass, $dialogId, $dialogTitle, $dialogUrl, array $dialogOptions = array(), $forcePrimaryKey = 0, $reloadOnClose = true, $buttonOptions = array())
+    {
+        $opts = array_merge($this->defaultDialogOptions, $reloadOnClose ? array('close' => new Zend_Json_Expr("function() { $('#{$this->id}').flexReload(); }")) : array(), $dialogOptions);
+        $opts = self::json_encode($opts, Curry_Core::$config->curry->internalEncoding); // keep the internal encoding
+        
+        if($forcePrimaryKey < 0) {
+        	$onPress = "function(com, grid) {
+        		$.util.openDialog('$dialogId', '$dialogTitle', '$dialogUrl', $opts);
+        	}";
+        } else {
+					$callback = isset($buttonOptions['callback']) ? $buttonOptions['callback'] : '';
+					$callbackUrl = $callback ? url('', array('module', 'view' => $callback, 'locale')) : '';
+					if (is_integer($forcePrimaryKey) && $forcePrimaryKey) {
+					    $fpkExpr = "items.length == {$forcePrimaryKey}";
+					} elseif (is_array($forcePrimaryKey)) {
+					    $fpkExpr = '';
+					    if (isset($forcePrimaryKey['min'])) {
+					        $fpkExpr = "items.length >= {$forcePrimaryKey['min']}";
+					    }
+					    
+					    if (isset($forcePrimaryKey['max'])) {
+					        $fpkExpr .= (isset($forcePrimaryKey['min']) ? " && " : "") . "items.length <= {$forcePrimaryKey['max']}";
+					    }
+					}
+					
+        	$onPress = "function(com, grid) {
+        		var items = $('.trSelected', grid);
+        		".($forcePrimaryKey ? "if({$fpkExpr}) {" : "")."
+        			var ids = $.map(items, function(item) { return $.data(item, '{$this->primaryKey}'); });
+        			if ('{$callback}'.length) {
+        				$.get('{$callbackUrl}', {'id[]': ids}, function(data){
+    								if (data.message && data.message.length) {
+    									$.util.infoDialog((data.title && data.title.length) ? data.title : '{$callback} says', data.message, function(){
+    										if (data.abort) {
+    											items.removeClass('trSelected');
+    										} else {
+    											$.util.openDialog('$dialogId', '$dialogTitle', '$dialogUrl&' + $.param({'{$this->primaryKey}': ids.length == 1 ? ids[0] : ids}), $opts);
+    										}
+    									});
+    								} else if (data.abort) {
+    									alert('The operation was aborted');
+    									items.removeClass('trSelected');
+    								} else if (! data.abort) {
+    									$.util.openDialog('$dialogId', '$dialogTitle', '$dialogUrl&' + $.param({'{$this->primaryKey}': ids.length == 1 ? ids[0] : ids}), $opts);
+    								}
+        				});
+        			} else {
+        				$.util.openDialog('$dialogId', '$dialogTitle', '$dialogUrl&' + $.param({'{$this->primaryKey}': ids.length == 1 ? ids[0] : ids}), $opts);
+        			}
+        		".($forcePrimaryKey ? "}" : "")."
+        	}";
+        }
+        
+        $this->addButton($name, array_merge($buttonOptions, array('bclass' => $bclass, 'onpress' => new Zend_Json_Expr($onPress))));
+    }
+    	
     /**
      * Behaves just like Curry_Flexigrid::addDeleteButton except that
-     * a string can be returned (Curry_Backend::returnPartial) from the JSON handler which will be shown in an alert() box.
+     * JSON data can be returned (with Curry_Backend::returnJson) from the JSON handler.
+     * returned json: {'message': 'some message to show in the info box'}
      */
     public function addDeleteStatusButton($options = array())
     {
@@ -49,8 +193,8 @@ class Silva_Grid extends Curry_Flexigrid_Propel
         	if(items.length && confirm('Delete ' + items.length + ' {$this->options['title']}? \\nWARNING: This cannot be undone.')) {
         		var ids = $.map(items, function(item) { return $.data(item, '{$this->primaryKey}'); });
         		$.post('{$this->options['url']}', {cmd: 'delete', 'id[]': ids}, function(data){
-        			if(typeof data == 'string') {
-        				$.util.infoDialog('Delete {$this->tableMap->getPhpName()} status:', data, function(){
+        			if(data.message && data.message.length) {
+        				$.util.infoDialog('Delete {$this->tableMap->getPhpName()} status:', data.message, function(){
         					$('#{$this->id}').flexReload();
         				});
         			} else {
