@@ -391,4 +391,13 @@ HTML;
         return $this->options[$key];
     }
     
+    /**
+     * Set/Add an option
+     * @param string $key
+     * @param mixed $value
+     */
+    public function setOption($key, $value) {
+        $this->options[$key] = $value;
+    }
+    
 } // Silva_View

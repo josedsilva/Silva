@@ -272,7 +272,12 @@ class Silva_View_Grid extends Silva_View_BaseModel
         if ($this->locale) {
             $editUrl->add(array(Silva_Backend::URL_QUERY_LOCALE => $this->locale));
         }
-
+        
+        // merge user-specific url params
+        if (isset($this->options['urlParams'])) {
+            $editUrl->add((array) $this->options['urlParams']);
+        }
+        
         return $editUrl;
     }
 
