@@ -102,6 +102,12 @@ abstract class Silva_View
      * @var string|null
      */
     protected $breadcrumbText = null;
+    
+    /**
+     * Whether this view is a top-level view?
+     * @var boolean
+     */
+    protected $isTopLevelView = false;
 
     /**
      * View description
@@ -255,6 +261,7 @@ HTML;
     public function setViewname($viewname)
     {
         $this->viewname = $viewname;
+        return $this;
     }
 
     public function getViewname()
@@ -265,6 +272,7 @@ HTML;
     public function setBreadcrumbText($text)
     {
         $this->breadcrumbText = $text;
+        return $this;
     }
 
     public function getBreadcrumbText()
@@ -274,6 +282,21 @@ HTML;
         }
 
         return $this->breadcrumbText;
+    }
+    
+    /**
+     * Whether this view is a top-level view?
+     * @param boolean $value
+     */
+    public function setIsTopLevelView($value)
+    {
+        $this->isTopLevelView = (boolean) $value;
+        return $this;
+    }
+    
+    public function getIsTopLevelView()
+    {
+        return $this->isTopLevelView;
     }
 
     public function getDescription()
@@ -285,18 +308,17 @@ HTML;
     {
         $this->description = $text;
         $this->descContentType = $contentType;
+        return $this;
     }
 
     protected function showDescription()
     {
-        if (! $this->description) {
-            return;
-        }
-
-        if ($this->descContentType === self::CONTENT_TEXT) {
-            $this->addMessage($this->description, "");
-        } elseif ($this->descContentType === self::CONTENT_HTML) {
-            $this->addMainContent($this->description);
+        if ($this->description) {
+            if ($this->descContentType === self::CONTENT_TEXT) {
+                $this->addMessage($this->description, "");
+            } elseif ($this->descContentType === self::CONTENT_HTML) {
+                $this->addMainContent($this->description);
+            }
         }
     }
 
@@ -398,6 +420,7 @@ HTML;
      */
     public function setOption($key, $value) {
         $this->options[$key] = $value;
+        return $this;
     }
     
 } // Silva_View

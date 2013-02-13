@@ -54,7 +54,7 @@ class Silva_View_ActiveRecord extends Silva_View_BaseModel
     protected function saveActiveRecord($activeRecord, $form)
     {
         parent::saveActiveRecord($activeRecord, $form);
-        return $this->backend->returnPartial($form);
+        return Curry_Application::returnPartial($form);
     }
 
     public function render()

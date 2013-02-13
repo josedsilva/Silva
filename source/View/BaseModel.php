@@ -28,6 +28,7 @@
 abstract class Silva_View_BaseModel extends Silva_View
 {
     protected $tableMap = null;
+    protected $tableAlias = null;
     protected $tableHasCompositePk = null;
     protected $catRelationMap = null;
     protected $catTableHasCompositePks = null;
@@ -97,6 +98,25 @@ abstract class Silva_View_BaseModel extends Silva_View
     public function getTableMap()
     {
         return $this->tableMap;
+    }
+    
+    /**
+     * Return the table alias if defined else return the table name
+     * @return string
+     */
+    public function getTableAlias()
+    {
+        return $this->tableAlias ? $this->tableAlias : $this->getTablename();
+    }
+    
+    /**
+     * Set an alias for the master model
+     * @param string $alias
+     */
+    public function setTableAlias($alias)
+    {
+        $this->tableAlias = $alias;
+        return $this;
     }
 
     /**
@@ -298,7 +318,7 @@ abstract class Silva_View_BaseModel extends Silva_View
     public function getBreadcrumbText()
     {
         if ($this->breadcrumbText === null) {
-            $this->breadcrumbText = "{$this->getTablename()}s";
+            $this->breadcrumbText = "{$this->getTableAlias()}s";
         }
         return $this->breadcrumbText;
     }
@@ -368,7 +388,7 @@ abstract class Silva_View_BaseModel extends Silva_View
 
     protected function getActiveRecordForm($activeRecord)
     {
-        $cbFormHandler = str_replace('%TABLENAME%', $this->getTablename(), Silva_Event::EVENT_ON_SHOW_FORM);
+        $cbFormHandler = str_replace('%TABLENAME%', $this->getTableAlias(), Silva_Event::EVENT_ON_SHOW_FORM);
         if ($this->options['autoBuildForm']) {
             $silvaForm = $this->getSilvaForm($activeRecord, array($this->getPkName() => $this->tableHasCompositePk() ? serialize($activeRecord->getPrimaryKey()) : $activeRecord->getPrimaryKey()));
             if (method_exists($this->backend, $cbFormHandler)) {
@@ -396,7 +416,7 @@ abstract class Silva_View_BaseModel extends Silva_View
 
     protected function saveActiveRecord($activeRecord, $form)
     {
-        $cbSaveHandler = str_replace('%TABLENAME%', $this->getTablename(), Silva_Event::EVENT_ON_SAVE);
+        $cbSaveHandler = str_replace('%TABLENAME%', $this->getTableAlias(), Silva_Event::EVENT_ON_SAVE);
         if (method_exists($this->backend, $cbSaveHandler)) {
             if ($this->options['autoBuildForm']) {
                 // populate known columns from fields
@@ -426,7 +446,7 @@ abstract class Silva_View_BaseModel extends Silva_View
     public function getViewname()
     {
         if ($this->viewname === null) {
-            $this->viewname = "Main{$this->getTablename()}s";
+            $this->viewname = "Main{$this->getTableAlias()}s";
         }
         return $this->viewname;
     }

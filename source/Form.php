@@ -257,6 +257,7 @@ class Silva_Form extends Curry_Form
     public function setIgnorePks($value)
     {
         $this->ignorePks = (boolean) $value;
+        return $this;
     }
 
     public function getIgnorePks()
@@ -271,6 +272,7 @@ class Silva_Form extends Curry_Form
     public function setIgnoreFks($value)
     {
         $this->ignoreFks = (boolean) $value;
+        return $this;
     }
 
     public function getIgnoreFks()
@@ -281,6 +283,7 @@ class Silva_Form extends Curry_Form
     public function setLocale($locale)
     {
         $this->locale = $locale;
+        return $this;
     }
 
     public function getLocale()
@@ -296,6 +299,7 @@ class Silva_Form extends Curry_Form
     public function setUseDefaultLocaleOnEmptyValue($value)
     {
         $this->useDefaultLocaleOnEmptyValue = (boolean) $value;
+        return $this;
     }
 
     public function getUseDefaultLocaleOnEmptyValue()
@@ -311,6 +315,7 @@ class Silva_Form extends Curry_Form
     public function setArrayColumnGlue($glue)
     {
         $this->arrayColumnGlue = $glue;
+        return $this;
     }
 
     /**
@@ -324,6 +329,7 @@ class Silva_Form extends Curry_Form
     public function ignoreColumns(array $behaviorsOrColumns)
     {
         Silva_Array::extend($this->ignoredColumns, $behaviorsOrColumns);
+        return $this;
     }
 
     /**
@@ -341,6 +347,8 @@ class Silva_Form extends Curry_Form
         } elseif ( ($key = array_search($behaviorOrColumn, $this->ignoredColumns)) !== false) {
             unset($this->ignoredColumns[$key]);
         }
+        
+        return $this;
     }
 
     /**
@@ -454,7 +462,7 @@ class Silva_Form extends Curry_Form
         $objs = $q->find();
         $list = array();
         if ($showNullOption) {
-            $list[0] = "[-- Select {$foreignTablename} --]";
+            $list[null] = "[-- Select {$foreignTablename} --]";
         }
         
         foreach ($objs as $obj) {

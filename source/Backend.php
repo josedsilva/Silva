@@ -102,6 +102,8 @@ abstract class Silva_Backend extends Curry_Backend
             
             $this->setView($viewname, $view);
         }
+        
+        return $this;
     }
     
     /**
@@ -113,13 +115,15 @@ abstract class Silva_Backend extends Curry_Backend
     {
         $this->viewMap[$viewname] = $view;
         if ($view->hasTable()) {
-            $this->tableViewMap[$view->getTablename()] = $view;
+            $this->tableViewMap[$view->getTableAlias()] = $view;
         }
+        
+        return $this;
     }
 
     /**
      * Return the View object corresponding to the tablename or viewname.
-     * @param string $modelOrView: Model classname (aka Tablename) or view name
+     * @param string $modelOrView: Model class name (aka Tablename) or table alias or view name
      * @return Silva_View|null
      */
     public function getView($modelOrView)
@@ -164,7 +168,7 @@ abstract class Silva_Backend extends Curry_Backend
 
     /**
      * Return the View object from the collection for $tablename
-     * @param string $tablename
+     * @param string $tablename		Table name or alias
      * @return Silva_View|null;
      */
     public function getViewByTable($tablename)
@@ -313,7 +317,7 @@ abstract class Silva_Backend extends Curry_Backend
 
     /**
      * The default view handler.
-     * The view name pattern should have the following format: 'Main' + model-associated-with-view + 's'
+     * The view name pattern should have the following format: 'Main' + master-model + 's'
      * @throws Silva_Exception
      */
     protected function defaultViewHandler()
@@ -366,7 +370,7 @@ abstract class Silva_Backend extends Curry_Backend
             return;
         }
 
-        $gridHandler = str_replace('%TABLENAME%', $sv->getTablename(), Silva_Event::EVENT_ON_GRID_INIT);
+        $gridHandler = str_replace('%TABLENAME%', $sv->getTableAlias(), Silva_Event::EVENT_ON_GRID_INIT);
         if (method_exists($this, $gridHandler)) {
             $grid = call_user_func_array(array($this, $gridHandler), array(&$sv));
             return $grid;
@@ -533,13 +537,23 @@ abstract class Silva_Backend extends Curry_Backend
      */
     protected function pushView($viewname)
     {
-        $viewStack = $this->getViewStack();
-        if (! empty($viewStack)) {
-            $offset = Silva_Array::array_key_index($viewname, $viewStack);
-            if ($offset !== false) {
-                array_splice($viewStack, $offset);
+        $view = $this->getViewByName($viewname);
+        if (! $view) {
+            throw new Silva_Exception("View ({$viewname}) is not registered.");
+        }
+        
+        if ($view->getIsTopLevelView()) {
+            $viewStack = array();
+        } else {
+            $viewStack = $this->getViewStack();
+            if (! empty($viewStack)) {
+                $offset = Silva_Array::array_key_index($viewname, $viewStack);
+                if ($offset !== false) {
+                    array_splice($viewStack, $offset);
+                }
             }
         }
+        
         $viewStack[$viewname] = url('', $_GET)->remove(array('json'))->getUrl();
         $this->saveViewStack($viewStack);
     }

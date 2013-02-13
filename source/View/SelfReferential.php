@@ -49,6 +49,7 @@ class Silva_View_SelfReferential extends Silva_View_Grid
     public function setBreadcrumbText(array $text)
     {
         $this->breadcrumbText = $text;
+        return $this;
     }
     
     public function getBreadcrumbText($key = 0)

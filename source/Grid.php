@@ -183,7 +183,7 @@ class Silva_Grid extends Curry_Flexigrid_Propel
     	
     /**
      * Behaves just like Curry_Flexigrid::addDeleteButton except that
-     * JSON data can be returned (with Curry_Backend::returnJson) from the JSON handler.
+     * JSON data can be returned (with Curry_Application::returnJson) from the JSON handler.
      * returned json: {'message': 'some message to show in the info box'}
      */
     public function addDeleteStatusButton($options = array())

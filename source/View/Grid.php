@@ -207,10 +207,6 @@ class Silva_View_Grid extends Silva_View_BaseModel
      */
     protected function addButtons(array $buttons)
     {
-        if (empty($buttons)) {
-            return;
-        }
-
         foreach ($buttons as $button) {
             switch ($button) {
                 case self::BUTTON_SEPARATOR:
@@ -260,7 +256,7 @@ class Silva_View_Grid extends Silva_View_BaseModel
     {
         $editUrl = url('', array(
             Silva_Backend::URL_QUERY_MODULE,
-            Silva_Backend::URL_QUERY_VIEW => $this->getTablename(),
+            Silva_Backend::URL_QUERY_VIEW => $this->getTableAlias(),
         ));
 
         if ($this->catRelationMap !== null) {
@@ -304,7 +300,7 @@ class Silva_View_Grid extends Silva_View_BaseModel
     {
         $exportCsvUrl = url('', array(
             Silva_Backend::URL_QUERY_MODULE,
-            Silva_Backend::URL_QUERY_VIEW => "{$this->getTablename()}ExportCsv",
+            Silva_Backend::URL_QUERY_VIEW => "{$this->getTableAlias()}ExportCsv",
         ));
 
         if ($this->catRelationMap !== null) {
@@ -316,6 +312,11 @@ class Silva_View_Grid extends Silva_View_BaseModel
         
         if ($this->locale) {
             $exportCsvUrl->add(array(Silva_Backend::URL_QUERY_LOCALE => $this->locale));
+        }
+        
+        // merge user-specific url params
+        if (isset($this->options['urlParams'])) {
+            $exportCsvUrl->add((array) $this->options['urlParams']);
         }
         
         $csvButton = $this->options['ExportCsvButton'];
@@ -332,7 +333,7 @@ class Silva_View_Grid extends Silva_View_BaseModel
     {
         $importCsvUrl = url('', array(
             Silva_Backend::URL_QUERY_MODULE,
-            Silva_Backend::URL_QUERY_VIEW => "{$this->getTablename()}ImportCsv",
+            Silva_Backend::URL_QUERY_VIEW => "{$this->getTableAlias()}ImportCsv",
         ));
 
         if ($this->locale) {
@@ -344,13 +345,18 @@ class Silva_View_Grid extends Silva_View_BaseModel
             $catLocalRefName = $this->getCategoryLocalReferenceName();
             $importCsvUrl->add(array($catLocalRefName => $_GET[$catLocalRefName]));
         }
-
+        
+        // merge user-specific url params
+        if (isset($this->options['urlParams'])) {
+            $importCsvUrl->add((array) $this->options['urlParams']);
+        }
+        
         $csvButton = $this->options['ImportCsvButton'];
         $bclass = (strpos($csvButton['bclass'], 'icon_') === false) ? 'icon_' . $csvButton['bclass'] : $csvButton['bclass'];
         // NOTE: should not use a DialogButton because dialog-form cannot upload a file.
         // Use Curry_Form::filebrowser instead of file
         //$this->grid->addLinkButton($csvButton['caption'], $bclass, $importCsvUrl, -1, (array) $csvButton['buttonOptions']);
-        $this->grid->addDialogButton($csvButton['caption'], $bclass, "dialog_importcsv", "Import CSV for {$this->getTablename()}s", $importCsvUrl, array(), -1, true, (array) $csvButton['buttonOptions']);
+        $this->grid->addDialogButton($csvButton['caption'], $bclass, "dialog_importcsv", "Import CSV for {$this->getTableAlias()}s", $importCsvUrl, array(), -1, true, (array) $csvButton['buttonOptions']);
     }
 
     protected function addToggleSelectButton()
@@ -430,7 +436,7 @@ class Silva_View_Grid extends Silva_View_BaseModel
         }
         
         if (isset($_GET['json'])) {
-            $jsonHook = str_replace('%TABLENAME%', $this->getTablename(), Silva_Event::EVENT_ON_JSON);
+            $jsonHook = str_replace('%TABLENAME%', $this->getTableAlias(), Silva_Event::EVENT_ON_JSON);
             if (method_exists($this->backend, $jsonHook)) {
                 call_user_func(array($this->backend, $jsonHook));
             } else {
@@ -439,7 +445,7 @@ class Silva_View_Grid extends Silva_View_BaseModel
                }
             }
 
-            $this->backend->returnJson($this->grid->getJSON());
+            Curry_Application::returnJson($this->grid->getJSON());
         }
 
         $this->showLocaleForm();
@@ -530,12 +536,12 @@ class Silva_View_Grid extends Silva_View_BaseModel
      */
     public function exportCsv()
     {
-        $cbFunc = str_replace('%TABLENAME%', $this->getTablename(), Silva_Event::EVENT_ON_EXPORT_CSV);
+        $cbFunc = str_replace('%TABLENAME%', $this->getTableAlias(), Silva_Event::EVENT_ON_EXPORT_CSV);
         if (! method_exists($this->backend, $cbFunc)) {
             throw new Silva_Exception("Callback ($cbFunc) not defined in " . get_class($this->backend));
         }
 
-        $filename = $this->getTablename() . 's-' . date('Y-m-d-H-i-s') . '.csv';
+        $filename = $this->getTableAlias() . 's-' . date('Y-m-d-H-i-s') . '.csv';
         $delimiter = ',';
         $enclosure = '"';
         $escape = '\\';
@@ -577,7 +583,7 @@ class Silva_View_Grid extends Silva_View_BaseModel
         $form = self::getImportCsvForm();
         if (isPost() && $form->isValid($_POST)) {
             $values = $form->getValues();
-            $cbFunc = str_replace('%TABLENAME%', $this->getTablename(), Silva_Event::EVENT_ON_IMPORT_CSV);
+            $cbFunc = str_replace('%TABLENAME%', $this->getTableAlias(), Silva_Event::EVENT_ON_IMPORT_CSV);
             if (! method_exists($this->backend, $cbFunc)) {
                 throw new Silva_Exception("Callback ($cbFunc) not defined in " . get_class($this->backend));
             }
@@ -585,10 +591,10 @@ class Silva_View_Grid extends Silva_View_BaseModel
             $filepath = Curry_Core::$config->curry->wwwPath . '/' . $values['csvfile'];
             $ret = call_user_func(array($this->backend, $cbFunc), $filepath, $values['delimiter'], $values['enclosure'], $values['escape']);
             unlink($filepath); // delete csv file after processing is completed
-            $this->backend->returnPartial($ret);
+            Curry_Application::returnPartial($ret);
         }
 
-        $this->backend->returnPartial($form);
+        Curry_Application::returnPartial($form);
     }
     
     /**
@@ -599,6 +605,7 @@ class Silva_View_Grid extends Silva_View_BaseModel
     {
         $filterMap = ($filterMap === null) ? $this->prepareAutoFilters() : $this->formatAutoFilters($filterMap);
         $this->autoFilterMap = $filterMap;
+        return $this;
     }
     
     protected function prepareAutoFilters()
@@ -681,6 +688,7 @@ class Silva_View_Grid extends Silva_View_BaseModel
     public function setFilterForm(Curry_Form $filterForm)
     {
         $this->filterForm = $filterForm;
+        return $this;
     }
 
     protected function showFilterForm()
@@ -706,7 +714,7 @@ class Silva_View_Grid extends Silva_View_BaseModel
             ));
         }
         
-        $this->setFilterForm(self::getFilterForm($elements));
+        return $this->setFilterForm(self::getFilterForm($elements));
     }
     
     /**
