@@ -216,48 +216,23 @@ abstract class Silva_View
     }
 
     /**
-     * Return the HTML snippet to embed a progress-bar widget.
-     * @param string $url
+     * Return the HTML snippet for a jquery-ui progress widget.
+     * @param string $uiElmId
+     * @param string $statusElmId
+     * @param string $initialStatus
+     * 
      * @return string
      */
-    public static function getProgressbarHtml($url)
+    public static function getUIProgressHtml($uiElmId = 'progressbar', $statusElmId = 'status', $initialStatus = 'progress bar is initializing...')
     {
-        $js =<<<JS
-$(function() {
-	$("#progressbar").progressbar({ value: 0 });
-
-	var sendmail = function(data, textStatus) {
-		$("#progressbar").progressbar('value', data.status);
-
-		$('#mail-status').html('Sending emails, ' + data.eta + ' seconds remaining...<br />Sent: ' + data.sent + '<br/>Failed: ' + data.failed);
-
-		if(data.url) {
-			$.get(data.url, null, sendmail, 'json');
-		} else {
-			if(data.status == 100) {
-				$('#mail-status').html('All done!<br />Sent: ' + data.sent + '<br/>Failed: ' + data.failed);
-			} else {
-				$('#mail-status').append('<br />Error');
-			}
-		}
-	};
-	$.get("$url", null, sendmail, 'json');
-
-});
-JS;
-
-	    $html =<<<HTML
-<p><div id="progressbar"></div></p>
-<br/>
-<p id="mail-status">
-	Please wait, preparing...
-</p>
+        $html =<<<HTML
+<p><div id="{$uiElmId}"></div></p><br/>
+<p id="{$statusElmId}">{$initialStatus}</p>
 HTML;
 
-	    Curry_Admin::getInstance()->getHtmlHead()->addInlineScript($js);
-	    return $html;
+        return $html;
     }
-
+    
     public function setViewname($viewname)
     {
         $this->viewname = $viewname;

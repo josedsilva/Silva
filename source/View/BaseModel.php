@@ -45,6 +45,9 @@ abstract class Silva_View_BaseModel extends Silva_View
         'appendSubmitButton' => true,
         // whether to automagically build form from the TableMap?
         'autoBuildForm' => true,
+        // whether to partially populate the model with known column values from form fields when a save callback handler is defined in the backend module?
+        // requires autoBuildForm to be set to true
+        'autoFillModel' => true,
         // whether empty value is substituted by the default locale's content when "autoBuildForm" is edited?
         'useDefaultLocaleOnEmptyValue' => false,
         // whether to ignore foreign keys when auto building forms?
@@ -418,7 +421,7 @@ abstract class Silva_View_BaseModel extends Silva_View
     {
         $cbSaveHandler = str_replace('%TABLENAME%', $this->getTableAlias(), Silva_Event::EVENT_ON_SAVE);
         if (method_exists($this->backend, $cbSaveHandler)) {
-            if ($this->options['autoBuildForm']) {
+            if ($this->options['autoBuildForm'] && $this->options['autoFillModel']) {
                 // populate known columns from fields
                 $form->fillModel($activeRecord);
             }

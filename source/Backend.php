@@ -249,11 +249,12 @@ abstract class Silva_Backend extends Curry_Backend
             $this->preShow();
             $viewname = $this->getActiveViewname();
             $viewHandler = "show{$viewname}";
-            if (! isAjax() && $this->options['showBreadcrumbs']) {
+            $viewHandlerExists = method_exists($this, $viewHandler);
+            if (! isAjax() && $this->options['showBreadcrumbs'] && ! $viewHandlerExists) {
                 $this->pushView($viewname);
             }
 
-            if (method_exists($this, $viewHandler)) {
+            if ($viewHandlerExists) {
                 // user-defined handler has higher precedence
                 call_user_func(array($this, $viewHandler));
             } elseif (in_array($viewname, array_keys($this->viewMap))) {
@@ -419,11 +420,44 @@ abstract class Silva_Backend extends Curry_Backend
         ), (array) $queryParams));
 
         $this->initMailSession();
+        
         $htmlHead = Curry_Admin::getInstance()->getHtmlHead();
-        $htmlHead->addStylesheet('shared/libs/jquery-ui-1.8.17/css/curry/jquery-ui-1.8.17.custom.css');
-        $htmlHead->addScript('shared/libs/jquery-ui-1.8.17/js/jquery-ui-1.8.17.custom.min.js');
-        $html = Silva_View::getProgressbarHtml($url);
+        $uiElmId = 'progressbar';
+        $statusElmId = 'mail-status';
+        $html = Silva_View::getUIProgressHtml($uiElmId, $statusElmId, 'Please wait, preparing...');
+        $js = self::getMailProgressJS($url, $uiElmId, $statusElmId);
+        
+        $htmlHead->addInlineScript($js);
         $this->addMainContent($html);
+    }
+    
+    protected static function getMailProgressJS($url, $uiElmId, $statusElmId)
+    {
+        $js =<<<JS
+$(function(){
+    $.require('jquery-ui', function(){
+    	$('#{$uiElmId}').progressbar({'value': 0});
+    	
+    	var sendmail = function(data, textStatus){
+    		$('#{$uiElmId}').progressbar('value', data.status);
+    		$('#{$statusElmId}').html('Sending emails, ' + data.eta + ' seconds remaining...<br />Sent: ' + data.sent + '<br/>Failed: ' + data.failed);
+    		if (data.url){
+    			$.get(data.url, null, sendmail, 'json');
+    		} else {
+    			if (data.status == 100){
+    				$('#{$statusElmId}').html('All done!<br />Sent: ' + data.sent + '<br/>Failed: ' + data.failed);
+    			} else {
+    				$('#{$statusElmId}').append('<br />Error');
+    			}
+        }
+      };
+      
+      $.get("{$url}", null, sendmail, 'json');
+    });
+});
+JS;
+
+        return $js;
     }
 
     /**
