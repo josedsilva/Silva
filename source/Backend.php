@@ -194,7 +194,7 @@ abstract class Silva_Backend extends Curry_Backend
      */
     public function showBreadcrumbs($viewname = null, $view = null)
     {
-        if (isAjax() || ! $this->options['showBreadcrumbs']) {
+        if (isAjax() || !$this->options['showBreadcrumbs']) {
             return;
         }
         
@@ -249,12 +249,11 @@ abstract class Silva_Backend extends Curry_Backend
             $this->preShow();
             $viewname = $this->getActiveViewname();
             $viewHandler = "show{$viewname}";
-            $viewHandlerExists = method_exists($this, $viewHandler);
-            if (! isAjax() && $this->options['showBreadcrumbs'] && ! $viewHandlerExists) {
+            if (!isAjax() && $this->options['showBreadcrumbs']) {
                 $this->pushView($viewname);
             }
 
-            if ($viewHandlerExists) {
+            if (method_exists($this, $viewHandler)) {
                 // user-defined handler has higher precedence
                 call_user_func(array($this, $viewHandler));
             } elseif (in_array($viewname, array_keys($this->viewMap))) {
@@ -572,7 +571,10 @@ JS;
     protected function pushView($viewname)
     {
         $view = $this->getViewByName($viewname);
-        if (! $view) {
+        if (!$view) {
+            if (method_exists($this, "show{$viewname}")) {
+                return;
+            }
             throw new Silva_Exception("View ({$viewname}) is not registered.");
         }
         
