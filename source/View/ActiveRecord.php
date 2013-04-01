@@ -28,15 +28,14 @@
 class Silva_View_ActiveRecord extends Silva_View_BaseModel
 {
     protected $activeRecord = null;
-    protected static $defaultOptions = array();
+    private $defaultOptions = array();
 
     public function __construct(BaseObject $activeRecord, Curry_Backend $backend, array $options = array())
     {
         $this->activeRecord = $activeRecord;
         $tableMap = PropelQuery::from(get_class($activeRecord))->getTableMap();
-        parent::__construct($tableMap, null, $backend);
-        $this->extendOptions(self::$defaultOptions);
-        $this->extendOptions($options);
+        Curry_Array::extend($this->defaultOptions, $options);
+        parent::__construct($tableMap, null, $backend, $this->defaultOptions);
     }
 
     public function editModel()

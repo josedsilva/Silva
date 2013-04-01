@@ -51,7 +51,7 @@ class Silva_View_Grid extends Silva_View_BaseModel
      * Default options
      * @var array
      */
-    protected static $defaultOptions = array(
+    private $defaultOptions = array(
         // Csv button options
         'ImportCsvButton' => array(
             'caption' => 'Import',
@@ -91,9 +91,8 @@ class Silva_View_Grid extends Silva_View_BaseModel
 
     public function __construct($tableMap, $catRelationMap = null, Curry_Backend $backend, array $options = array())
     {
-        parent::__construct($tableMap, $catRelationMap, $backend);
-        $this->extendOptions(self::$defaultOptions);
-        $this->extendOptions($options);
+    	Curry_Array::extend($this->defaultOptions, $options);
+        parent::__construct($tableMap, $catRelationMap, $backend, $this->defaultOptions);
     }
 
     /**

@@ -32,10 +32,13 @@ class Silva_View_Html extends Silva_View
 	 * @var string
 	 */
 	protected $content;
+	private $defaultOptions = array();
 	
-	public function __construct($viewname, Curry_Backend $backend)
+	public function __construct($viewname, Curry_Backend $backend, array $options = array())
 	{
-		parent::__construct($backend);
+		Curry_Array::extend($this->defaultOptions, $options);
+		parent::__construct($backend, $this->defaultOptions);
+		
 		$this->setViewname($viewname);
 	}
 	

@@ -40,7 +40,7 @@ abstract class Silva_View_BaseModel extends Silva_View
     protected $i18nTableMap = null;
     protected $hasI18nBehavior = null;
 
-    protected static $defaultOptions = array(
+    private $defaultOptions = array(
         // whether to automagically appended a submit button to the form if not present.
         'appendSubmitButton' => true,
         // whether to automagically build form from the TableMap?
@@ -63,12 +63,13 @@ abstract class Silva_View_BaseModel extends Silva_View
      * @param RelationMap|string $catRelationMap	The RelationMap that relates this table to the category or the RelationMap name.
      * @param Curry_Backend $backend
      */
-    public function __construct($tableMap, $catRelationMap = null, Curry_Backend $backend)
+    public function __construct($tableMap, $catRelationMap = null, Curry_Backend $backend, array $options = array())
     {
-        parent::__construct($backend);
+    	Curry_Array::extend($this->defaultOptions, $options);
+        parent::__construct($backend, $this->defaultOptions);
+        
         $this->tableMap = is_string($tableMap) ? PropelQuery::from($tableMap)->getTableMap() : $tableMap;
         $this->catRelationMap = is_string($catRelationMap) ? $this->tableMap->getRelation($catRelationMap) : $catRelationMap;
-        $this->extendOptions(self::$defaultOptions);
         // initialise I18n behavior
         if ($this->hasI18nBehavior()) {
             $i18nProperties = $this->getI18nBehavior();
@@ -77,7 +78,7 @@ abstract class Silva_View_BaseModel extends Silva_View
     }
 
     // override
-    protected function extendOptions(array $options)
+    public function extendOptions(array $options)
     {
         parent::extendOptions($options);
         if (! $this->options['autoBuildForm']) {
@@ -410,8 +411,8 @@ abstract class Silva_View_BaseModel extends Silva_View
                 $this->getPkName() => $this->tableHasCompositePk() ? serialize($activeRecord->getPrimaryKey()) : $activeRecord->getPrimaryKey()
             ));
             // get user-defined form from the backend module
-            call_user_func_array(array($this->backend, $cbFormHandler), array($activeRecord, $partialForm));
-            $form = $partialForm;
+            $ret = call_user_func_array(array($this->backend, $cbFormHandler), array($activeRecord, $partialForm));
+            $form = $ret ? $ret : $partialForm;
         }
 
         return $form;
@@ -463,12 +464,13 @@ abstract class Silva_View_BaseModel extends Silva_View
     protected function getSilvaForm($modelInstance, array $actionQuery = array())
     {
         $sf = new Silva_Form($this->tableMap, $this->backend);
-        $sf->setAction(url('', $_GET)->add($actionQuery))->setAttrib('class', 'dialog-form');
-        $sf->setUseDefaultLocaleOnEmptyValue($this->options['useDefaultLocaleOnEmptyValue']);
-        $sf->setIgnoreFks($this->options['ignoreForeignKeys']);
-        $sf->setIgnorePks($this->options['ignorePrimaryKeys']);
-        $sf->setLocale($this->locale);
-        $sf->createElements();
+        $sf->setAction(url('', $_GET)->add($actionQuery))
+        	->setAttrib('class', 'dialog-form')
+        	->setUseDefaultLocaleOnEmptyValue($this->options['useDefaultLocaleOnEmptyValue'])
+        	->setIgnoreFks($this->options['ignoreForeignKeys'])
+        	->setIgnorePks($this->options['ignorePrimaryKeys'])
+        	->setLocale($this->locale)
+        	->createElements();
         $sf->fillForm($modelInstance);
         return $sf;
     }

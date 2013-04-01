@@ -27,19 +27,23 @@
  */
 class Silva_View_SelfReferential extends Silva_View_Grid
 {
+	private $defaultOptions = array(
+		'manualBreadcrumbs' => true,
+	);
+	
     public function __construct($tableMap, Curry_Backend $backend, array $options = array())
     {
-        $this->extendOptions(array('manualBreadcrumbs' => true));
         // catRelMap must be set as a url param if the root-level of the SR view is a foreign relation of catRelMap
         $catRelationMap = isset($_GET['relMap']) ? $_GET['relMap'] : $_GET['catRelMap'];
-        parent::__construct($tableMap, $catRelationMap, $backend, $options);
+        Curry_Array::extend($this->defaultOptions, $options);
+        parent::__construct($tableMap, $catRelationMap, $backend, $this->defaultOptions);
     }
     
     protected function getAddEditUrl()
     {
         $editUrl = parent::getAddEditUrl();
         $editUrl->add(array(
-        		'relMap' => $_GET['relMap'],
+        	'relMap' => $_GET['relMap'],
             'level' => $_GET['level'],
         ));
         

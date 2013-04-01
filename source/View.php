@@ -129,7 +129,7 @@ abstract class Silva_View
 
     protected $viewname = null;
 
-    protected static $defaultOptions = array();
+    private $defaultOptions = array();
     /**
      * Effective options
      * @var array
@@ -140,9 +140,10 @@ abstract class Silva_View
      * Instantiate the view
      * @param Curry_Backend $backend
      */
-    public function __construct(Curry_Backend $backend)
+    public function __construct(Curry_Backend $backend, array $options = array())
     {
-        $this->extendOptions(self::$defaultOptions);
+        Curry_Array::extend($this->options, $this->defaultOptions);
+        $this->extendOptions($options);
         $this->backend = $backend;
     }
 
@@ -150,9 +151,13 @@ abstract class Silva_View
      * Helper method to extend View options.
      * @param array $extenderOptions
      */
-    protected function extendOptions(array $extenderOptions)
+    public function extendOptions(array $extenderOptions)
     {
-        $this->options = Silva_Array::extend($this->options, $extenderOptions);
+    	if (empty($extenderOptions)) {
+    		return;
+    	}
+    	
+        Curry_Array::extend($this->options, $extenderOptions);
     }
 
     /**
@@ -388,8 +393,14 @@ HTML;
         return $this->options[$key];
     }
     
+    public function getOptions()
+    {
+    	return $this->options;
+    }
+    
     /**
-     * Set/Add an option
+     * Set/Add an option.
+     * @see extendOptions() is a preferred method instead.
      * @param string $key
      * @param mixed $value
      */

@@ -30,7 +30,7 @@
 class Silva_View_CompositeGrid extends Silva_View_Grid
 {
     protected $compositeTableMap = null;
-    protected static $defaultOptions = array();
+    private $defaultOptions = array();
     
     /**
      * The constructor...
@@ -41,8 +41,9 @@ class Silva_View_CompositeGrid extends Silva_View_Grid
      */
     public function __construct($tableMap, $compositeTableMap, Curry_Backend $backend, array $options = array())
     {
-        $this->extendOptions(self::$defaultOptions);
-        parent::__construct($tableMap, null, $backend, $options);
+    	Curry_Array::extend($this->defaultOptions, $options);
+        parent::__construct($tableMap, null, $backend, $this->defaultOptions);
+        
         $this->compositeTableMap = is_string($compositeTableMap) ? PropelQuery::from($compositeTableMap)->getTableMap() : $compositeTableMap;
     }
     

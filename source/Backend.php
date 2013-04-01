@@ -51,7 +51,7 @@ abstract class Silva_Backend extends Curry_Backend
      * Default options
      * @var array
      */
-    protected static $defaultOptions = array(
+    private $defaultOptions = array(
         // whether to automagically show breadcrumbs in default view handlers
         'showBreadcrumbs' => true,
     );
@@ -72,8 +72,8 @@ abstract class Silva_Backend extends Curry_Backend
     public function __construct(array $options = array())
     {
         parent::__construct();
-        $this->options = self::$defaultOptions;
-        $this->options = Silva_Array::extend($this->options, $options);
+        Curry_Array::extend($this->options, $this->defaultOptions);
+        Curry_Array::extend($this->options, $options);
         $this->embedCSS();
         $this->embedJS();
     }
@@ -632,11 +632,10 @@ JS;
 }
 form.locale-selector, form.filters {
 	box-shadow: 0 1px 2px lightgray;
-	border-radius: 15px;
+	border-radius: 2px;
 	overflow: hidden;
 }
 form.locale-selector #locale-element {
-	border-radius: 6px;
 	box-shadow: 0px 1px 4px lightgray;
 }
 div.flexigrid {

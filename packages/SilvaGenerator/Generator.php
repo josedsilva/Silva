@@ -41,11 +41,11 @@ final class Common_Backend_SilvaGenerator_Generator extends Curry_Backend
     );
     
     public static function getName() {
-        return 'Silva Module Generator';
+        return 'Simple Module Generator';
     }
     
     public static function getGroup() {
-    	return 'Content';
+    	return 'Silva';
     }
     
     public function showMain() {
