@@ -19,7 +19,7 @@
 /**
  * Reusable general purpose methods.
  *
- * @category    Curry
+ * @category    Curry CMS
  * @package     Silva
  * @author      Jose Francisco D'Silva
  * @version

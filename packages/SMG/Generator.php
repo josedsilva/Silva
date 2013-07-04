@@ -17,14 +17,14 @@
  *
  */
 /**
- * Generate code for a Backend module stub using Silva APIs 
- * 
+ * Generate code for a simple Backend module stub using Silva APIs
+ *
  * @category   Silva
- * @package    Silva Module Generator
+ * @package    Simple Module Generator
  * @author     Jose Francisco D'Silva
- * @version    
+ * @version
  */
-final class Common_Backend_SilvaGenerator_Generator extends Curry_Backend
+class Common_Backend_SMG_Generator extends Curry_Backend
 {
     protected $consoleBuffer = '';
     protected $views = array();
@@ -244,7 +244,7 @@ HTML;
     }
     
     /**
-     * Return the RelationMap from $tableMap whose foreign tablemap matches $catTableMap 
+     * Return the RelationMap from $tableMap whose foreign tablemap matches $catTableMap
      * @param TableMap $tableMap
      * @param TableMap $catTableMap
      */
@@ -307,7 +307,7 @@ HTML;
         
         $tplData = array(
             'Self' => __CLASS__,
-        		'Options' => $this->options,
+            'Options' => $this->options,
             'ModuleClass' => $formValues['module_class'],
             'ModuleDescription' => $formValues['module_desc'],
             'ModuleAuthor' => $formValues['module_author'],
@@ -321,7 +321,7 @@ HTML;
             'cache' => $cachePath,
             'auto_reload' => true,
         ));
-        $tpl = $twig->loadTemplate('Module.tpl');
+        $tpl = $twig->loadTemplate('Main.twig');
         $code = $tpl->render(array(
             'SG' => $tplData,
         ));

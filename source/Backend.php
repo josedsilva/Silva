@@ -19,7 +19,7 @@
 /**
  * Base class for Curry_Backend modules using the event driven interface.
  *
- * @category    Curry
+ * @category    Curry CMS
  * @package     Silva
  * @author      Jose Francisco D'Silva
  * @version
@@ -249,7 +249,7 @@ abstract class Silva_Backend extends Curry_Backend
             $this->preShow();
             $viewname = $this->getActiveViewname();
             $viewHandler = "show{$viewname}";
-            if (!isAjax() && $this->options['showBreadcrumbs']) {
+            if (!isAjax() && !isset($_GET['nostck']) && $this->options['showBreadcrumbs']) {
                 $this->pushView($viewname);
             }
 
@@ -369,11 +369,10 @@ abstract class Silva_Backend extends Curry_Backend
         if (! $sv->hasTable()) {
             return;
         }
-
-        $gridHandler = str_replace('%TABLENAME%', $sv->getTableAlias(), Silva_Event::EVENT_ON_GRID_INIT);
+        
+        $gridHandler = Silva_Hook::getHookPattern(Silva_Hook::HOOK_ON_GRID_INIT, '%TABLENAME%', $sv->getTableAlias());
         if (method_exists($this, $gridHandler)) {
-            $grid = call_user_func_array(array($this, $gridHandler), array(&$sv));
-            return $grid;
+            return Silva_Hook::execHook(array($this, $gridHandler), $sv);
         }
     }
 

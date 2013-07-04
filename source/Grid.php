@@ -19,7 +19,7 @@
 /**
  * Wrapper class for Curry_Flexigrid_Propel
  *
- * @category    Curry
+ * @category    Curry CMS
  * @package     Silva
  * @author      Jose Francisco D'Silva
  * @version
@@ -40,10 +40,10 @@ class Silva_Grid extends Curry_Flexigrid_Propel
     }
     
     /**
-     * Behaves just like Curry_Flexigrid::addLinkButton except that it suuports a callback parameter
+     * Behaves just like Curry_Flexigrid::addLinkButton except that it supports a callback parameter
      * in $buttonOptions which can be used to selectively continue with further processing or abort operation.
      * The callback must return a json hash: {'message': 'some optional message', 'abort': true/false}
-     * 
+     *
      * @param $name
      * @param $bclass
      * @param $url
@@ -328,22 +328,22 @@ class Silva_Grid extends Curry_Flexigrid_Propel
      * Return the HTML to display the thumbnail.
      * Do not use this method outside the class.
      * It's access level is public because it was intended to be a callback method.
-     * 
+     *
      * @param string $src
      * @param integer $twd
      * @param integer $tht
      * @param string $flexId
      * @param string $getter
      * @param string $pk: The flexigrid's identifier
-     * 
+     *
      * @return string
      */
     public static function getThumbnailHtml($src, $twd, $tht, $flexId, $getter = '', $pk = '')
     {
-        return $src ? 
+        return $src ?
         	'<a href="'.$src.'" class="'.($getter ? 'silva-image-edit' : 'silva-image-preview').'" data-flexid='.$flexId.($getter ? ' data-getter="'.$getter.'" data-pk="'.$pk.'"' : '').'>
         		<img src="'.self::getThumbnailProcessor($twd, $tht)->processImage($src).'" />
-        	 </a>' : 
+        	 </a>' :
         	 '[No Thumbnail]';
     }
 
@@ -355,14 +355,14 @@ class Silva_Grid extends Curry_Flexigrid_Propel
      * @param integer $twd: Thumbnail width in pixels
      * @param integer $tht: Thumbnail height in pixels
      * @param boolean $previewOnly: Whether to preview or edit image?
-     *  
+     *
      * @example $flexigrid->addThumbnail('thumb', 'Thumbnail', 'Product.Image');
      */
     public function addThumbnail($column, $display, $getter, $twd = 50, $tht = 50, $previewOnly = true)
     {
         $this->addRawColumn($column, $display);
         $phpGetter = join('->', array_map(
-            create_function('$e', 'return "get".$e."()";'), 
+            create_function('$e', 'return "get".$e."()";'),
             explode('.', $getter)));
         $callback = create_function('$o', "return " . __CLASS__ . "::getThumbnailHtml(\$o->{$phpGetter}, $twd, $tht, '{$this->id}'".($previewOnly ? "" : ",'$getter', '{$this->primaryKey}'").");");
         $this->setColumnCallback($column, $callback);
@@ -389,6 +389,30 @@ class Silva_Grid extends Curry_Flexigrid_Propel
     public function setEditableThumbnail($column, $display = null, $twd = 50, $tht = 50)
     {
         $this->setThumbnail($column, $display, $twd, $tht, false);
+    }
+    
+    public function hideColumns(array $columns)
+    {
+        $this->setColumnOption($columns, 'hide', true);
+    }
+    
+    public function moveColumnFirst($column)
+    {
+        $this->moveColumn($column, 0);
+    }
+    
+    public function moveColumnLast($column)
+    {
+        $this->moveColumn($column, -1);
+    }
+    
+    public function orderColumns(array $columns)
+    {
+        $index = 1;
+        foreach ($columns as $column) {
+            $this->moveColumn($column, $index);
+            ++ $index;
+        }
     }
 
     /**

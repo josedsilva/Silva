@@ -19,7 +19,7 @@
 /**
  * Define a grid view whose master table has relationships that are self-referential
  *
- * @category    Curry
+ * @category    Curry CMS
  * @package     Silva
  * @author      Jose Francisco D'Silva
  * @version

@@ -19,7 +19,7 @@
 /**
  * Abstract class for a Curry_Backend view associated with a model.
  *
- * @category    Curry
+ * @category    Curry CMS
  * @package     Silva
  * @author      Jose Francisco D'Silva
  * @version
@@ -165,8 +165,7 @@ abstract class Silva_View_BaseModel extends Silva_View
         if (count($cmPks) > 1) {
             $pkName = strtolower($this->tableMap->getName()) . '_id';
         } else {
-            reset($cmPks);
-            $cm = current($cmPks);
+            $cm = reset($cmPks);
             $pkName = strtolower($cm->getName());
         }
         return $pkName;
@@ -184,8 +183,7 @@ abstract class Silva_View_BaseModel extends Silva_View
         if (count($cmPks) > 1) {
             $pkPhpName = $this->getTablename() . 'Id';
         } else {
-            reset($cmPks);
-            $cm = current($cmPks);
+            $cm = reset($cmPks);
             $pkPhpName = $cm->getPhpName();
         }
         return $pkPhpName;
@@ -392,11 +390,11 @@ abstract class Silva_View_BaseModel extends Silva_View
 
     protected function getActiveRecordForm($activeRecord)
     {
-        $cbFormHandler = str_replace('%TABLENAME%', $this->getTableAlias(), Silva_Event::EVENT_ON_SHOW_FORM);
+        $cbFormHandler = Silva_Hook::getHookPattern(Silva_Hook::HOOK_ON_SHOW_FORM, '%TABLENAME%', $this->getTableAlias());
         if ($this->options['autoBuildForm']) {
             $silvaForm = $this->getSilvaForm($activeRecord, array($this->getPkName() => $this->tableHasCompositePk() ? serialize($activeRecord->getPrimaryKey()) : $activeRecord->getPrimaryKey()));
             if (method_exists($this->backend, $cbFormHandler)) {
-            	call_user_func_array(array($this->backend, $cbFormHandler), array($activeRecord, $silvaForm));
+                Silva_Hook::execHook(array($this->backend, $cbFormHandler), $activeRecord, $silvaForm);
             }
             
             $form = $silvaForm;
@@ -420,14 +418,15 @@ abstract class Silva_View_BaseModel extends Silva_View
 
     protected function saveActiveRecord($activeRecord, $form)
     {
-        $cbSaveHandler = str_replace('%TABLENAME%', $this->getTableAlias(), Silva_Event::EVENT_ON_SAVE);
+        $cbSaveHandler = Silva_Hook::getHookPattern(Silva_Hook::HOOK_ON_SAVE, '%TABLENAME%', $this->getTableAlias());
         if (method_exists($this->backend, $cbSaveHandler)) {
             if ($this->options['autoBuildForm'] && $this->options['autoFillModel']) {
                 // populate known columns from fields
                 $form->fillModel($activeRecord);
             }
             
-            $ret = call_user_func(array($this->backend, $cbSaveHandler), $activeRecord, (array) $form->getValues());
+//             $ret = call_user_func(array($this->backend, $cbSaveHandler), $activeRecord, (array) $form->getValues());
+            $ret = Silva_Hook::execHook(array($this->backend, $cbSaveHandler), $activeRecord, (array) $form->getValues());
         } else {
             if ($this->options['autoBuildForm']) {
                 $form->fillModel($activeRecord);

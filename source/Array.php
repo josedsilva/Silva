@@ -19,7 +19,7 @@
 /**
  * Helper class for reusable PHP array methods
  *
- * @category    Curry
+ * @category    Curry CMS
  * @package     Silva
  * @author      Jose Francisco D'Silva
  * @version

@@ -26,10 +26,10 @@
  * Can ignore foreign keys while creating form elements or automagically create and populate dropdowns with fk values
  * Can ignore columns for unwanted propel behaviors when creating form elements
  *
- * @category    Curry
+ * @category    Curry CMS
  * @package     Silva
- * @version     2.0.0
  * @author      Jose Francisco D'Silva
+ * @version
  */
 class Silva_Form extends Curry_Form
 {
@@ -362,7 +362,7 @@ class Silva_Form extends Curry_Form
     {
         // create default element options
         $defaultOptions = array(
-            'label' => ucfirst(strtolower(str_replace("_", " ", $column->getName()))),
+            'label' => ucfirst(strtolower(str_replace("_", " ", ($column->isForeignKey() ? $column->getRelatedTableName() : $column->getName())))),
             'required' => $column->isNotNull(),
         );
         $element = null;
@@ -545,8 +545,8 @@ class Silva_Form extends Curry_Form
     
     protected function preCreateElements()
     {
-        if (method_exists($this->backend, Silva_Event::EVENT_ON_FORM_ELEMENTS_INIT)) {
-            $this->colElmMap = call_user_func_array(array($this->backend, Silva_Event::EVENT_ON_FORM_ELEMENTS_INIT), array($this));
+        if (method_exists($this->backend, Silva_Hook::HOOK_ON_FORM_ELEMENTS_INIT)) {
+            $this->colElmMap = Silva_Hook::execHook(array($this->backend, Silva_HOOK::HOOK_ON_FORM_ELEMENTS_INIT), $this);
         }
     }
     

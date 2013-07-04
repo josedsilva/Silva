@@ -1,0 +1,24 @@
+{% import "Macros/Docs.twig" as Doc %}
+{% import "Macros/GridHooks.twig" as Grid %}
+{{ Doc.moduleHead(SG) }}
+class {{ SG.ModuleClass }} extends Silva_Backend
+{
+    {{ Grid.printConstructor(SG) | raw }}
+    
+    {% if SG.Options[constant(SG.Self ~ '::OPT_FORMELMSINIT')] %}
+        {% if SG.Options[constant(SG.Self ~ '::OPT_DOCCOMMENTS')] %}
+            {{ Doc.formElementsInit(SG) | raw }}
+        {% endif %}
+        {{ Grid.printFormElementsInitHook(SG) | raw }}
+    {% endif %}
+    
+    {% for sgView in SG.Views %}
+        {% if sgView.HasChildViews or SG.Options[constant(SG.Self ~ '::OPT_GRIDINIT_LEAFVIEWS')]  %}
+            {% if SG.Options[constant(SG.Self ~ '::OPT_DOCCOMMENTS')] %}
+                {{ Doc.gridInit(sgView) | raw }}
+            {% endif %}
+            {{ Grid.printGridInitHook(sgView) | raw }}
+        {% endif %}
+    {% endfor %}
+    
+} // {{ SG.ModuleClass }}

@@ -1,0 +1,51 @@
+{% macro printConstructor(SG) %}
+public function __construct()
+{
+    parent::__construct();
+    
+    $this->setViews(array(
+        {% for sgView in SG.Views %}
+        new Silva_View_Grid('{{ sgView.TableName }}', {% if sgView.CatRelationName %}'{{ sgView.CatRelationName }}'{% else %}null{% endif %}, $this{% if sgView.ViewOptions is not empty %}, array(
+        {% for k,v in sgView.ViewOptions %}
+        '{{ k }}' => {{ v }},
+        {% endfor %}
+        ){% endif %}),
+        {% endfor %}
+    ));
+}
+{% endmacro %}
+
+{% macro printFormElementsInitHook(SG) %}
+public function onFormElementsInit(Silva_Form $form)
+{
+    $ret = null;
+    
+    // TODO: Please refer documentation at https://github.com/josedsilva/Silva/wiki/Advanced-Features
+    
+    return $ret;
+}
+{% endmacro %}
+
+{% macro printGridInitHook(View) %}
+public function on{{ View.TableName }}GridInit(Silva_View $vw)
+{
+    $vw->setDescription("Manage {{ View.TableName ~ 's'}}{% if View.CatRelationName %} for {$vw->getActiveCategoryObject()}{% endif %}");
+    {% if View.HasChildViews %}
+        $buttons = array(
+        {% for button in View.Buttons %}
+            {% if button.AEDS %}
+                {{ button.AEDS }},
+            {% else %}
+                array(
+                    'caption' => '{{ button.RelationName }}s',
+                    'url' => url('', array('module', 'view' => '{{ 'Main' ~ button.RelationName ~ 's' }}')),
+                ),
+            {% endif %}
+        {% endfor %}
+        );
+        $grid = $vw->getGrid($buttons);
+    {% else %}
+        $grid = $vw->getGrid();
+    {% endif %}
+}
+{% endmacro %}

@@ -1,0 +1,35 @@
+{#
+    Documentation that appears at the head of the module.
+    Usually describes the module's functionality, author, etc.
+#}
+{% macro moduleHead(SG) %}
+/**
+ * {{ SG.ModuleDescription | default("Enter description here...") | raw }}
+ * Module stub generated on {{ date() | date('c') }}
+ *
+ * @category        Curry
+ * @name            {{ SG.ModuleClass }}
+ * @author          {{ SG.ModuleAuthor | default("Enter the author's name here...") | raw }}
+ *
+ * @see             https://github.com/josedsilva/Silva/wiki/Documentation
+ */
+{% endmacro %}
+
+{% macro formElementsInit(SG) %}
+/**
+ * Customize Silva_Form fields.
+ *
+ * @param Silva_Form $form    Reference to the Silva_Form in the current context (i.e. the form that is about to be displayed).
+ * @return array|null
+ *
+ * @see https://github.com/josedsilva/Silva/wiki/Advanced-Features
+ */
+{% endmacro %}
+
+{% macro gridInit(View) %}
+/**
+ * Customize the grid view associated with model {{ View.TableName }}
+ *
+ * @param Silva_View $vw        The grid view object.
+ */
+{% endmacro %}

@@ -19,7 +19,7 @@
 /**
  * Define a view showing the active record
  *
- * @category    Curry
+ * @category    Curry CMS
  * @package     Silva
  * @author      Jose Francisco D'Silva
  * @version

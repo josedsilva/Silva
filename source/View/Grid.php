@@ -19,7 +19,7 @@
 /**
  * Define a grid view showing a collection of tuples
  *
- * @category    Curry
+ * @category    Curry CMS
  * @package     Silva
  * @author      Jose Francisco D'Silva
  * @version
@@ -300,6 +300,7 @@ class Silva_View_Grid extends Silva_View_BaseModel
         $exportCsvUrl = url('', array(
             Silva_Backend::URL_QUERY_MODULE,
             Silva_Backend::URL_QUERY_VIEW => "{$this->getTableAlias()}ExportCsv",
+            'nostck' => 1, // do not push this view onto the stack
         ));
 
         if ($this->catRelationMap !== null) {
@@ -435,9 +436,10 @@ class Silva_View_Grid extends Silva_View_BaseModel
         }
         
         if (isset($_GET['json'])) {
-            $jsonHook = str_replace('%TABLENAME%', $this->getTableAlias(), Silva_Event::EVENT_ON_JSON);
+            $jsonHook = Silva_Hook::getHookPattern(Silva_Hook::HOOK_ON_JSON, '%TABLENAME%', $this->getTableAlias());
             if (method_exists($this->backend, $jsonHook)) {
-                call_user_func(array($this->backend, $jsonHook));
+//                 call_user_func(array($this->backend, $jsonHook));
+                Silva_Hook::execHook(array($this->backend, $jsonHook));
             } else {
                if ($this->tableHasCompositePk()) {
                    $this->deleteTuplesHavingCompositeKey();
@@ -477,17 +479,19 @@ class Silva_View_Grid extends Silva_View_BaseModel
             }
             
             $colMaps = $relMap->getLocalColumns();
-            $cm = array_shift($colMaps);
-            $this->grid->setColumnOption(strtolower($cm->getName()), 'hide', true);
-            if ( (null !== $this->catRelationMap) && ($this->getCategoryLocalReferencePhpName() == $cm->getPhpName()) ) {
-                trace_notice(__METHOD__.': Skipped category column: '.$this->getCategoryLocalReferenceName());
-                continue;
+            if (is_array($colMaps) && !empty($colMaps)) {
+                $cm = array_shift($colMaps);
+                $this->grid->setColumnOption(strtolower($cm->getName()), 'hide', true);
+                if ( (null !== $this->catRelationMap) && ($this->getCategoryLocalReferencePhpName() == $cm->getPhpName()) ) {
+                    trace_notice(__METHOD__.': Skipped category column: '.$this->getCategoryLocalReferenceName());
+                    continue;
+                }
+                
+                $newCol = strtolower($relMap->getForeignTable()->getName());
+                $this->grid->addColumn($newCol, $relMap->getName(), array('sortable' => false));
+                $fn = 'return $o->get'.$relMap->getName().'();';
+                $this->grid->setColumnCallback($newCol, create_function('$o', $fn));
             }
-            
-            $newCol = strtolower($relMap->getForeignTable()->getName());
-            $this->grid->addColumn($newCol, $relMap->getName(), array('sortable' => false));
-            $fn = 'return $o->get'.$relMap->getName().'();';
-            $this->grid->setColumnCallback($newCol, create_function('$o', $fn));
         }
         
         // hide slug column
@@ -535,7 +539,7 @@ class Silva_View_Grid extends Silva_View_BaseModel
      */
     public function exportCsv()
     {
-        $cbFunc = str_replace('%TABLENAME%', $this->getTableAlias(), Silva_Event::EVENT_ON_EXPORT_CSV);
+        $cbFunc = Silva_Hook::getHookPattern(Silva_Hook::HOOK_ON_EXPORT_CSV, '%TABLENAME%', $this->getTableAlias());
         if (! method_exists($this->backend, $cbFunc)) {
             throw new Silva_Exception("Callback ($cbFunc) not defined in " . get_class($this->backend));
         }
@@ -582,7 +586,7 @@ class Silva_View_Grid extends Silva_View_BaseModel
         $form = self::getImportCsvForm();
         if (isPost() && $form->isValid($_POST)) {
             $values = $form->getValues();
-            $cbFunc = str_replace('%TABLENAME%', $this->getTableAlias(), Silva_Event::EVENT_ON_IMPORT_CSV);
+            $cbFunc = Silva_Hook::getHookPattern(Silva_Hook::HOOK_ON_IMPORT_CSV, '%TABLENAME%', $this->getTableAlias());
             if (! method_exists($this->backend, $cbFunc)) {
                 throw new Silva_Exception("Callback ($cbFunc) not defined in " . get_class($this->backend));
             }
@@ -723,6 +727,29 @@ class Silva_View_Grid extends Silva_View_BaseModel
     public function getActiveCategoryObject()
     {
         return ($this->catRelationMap !== null) ? PropelQuery::from($this->getCategoryTablename())->findPk($_GET[$this->getCategoryForeignReferenceName()]) : null;
+    }
+    
+    protected function showDescription()
+    {
+        if (isset($this->options['description'])) {
+            $rawText = $this->options['description'];
+            $description = str_replace(array(
+                '%TABLE_NAME%', '%TABLE_ALIAS%', '%BREADCRUMB_TEXT%', '%ACTIVE_CATEGORY_OBJECT%',
+            ), array(
+                $this->getTablename(), $this->getTableAlias(), $this->getBreadcrumbText(), $this->getActiveCategoryObject(),
+            ), $rawText);
+            unset($this->options['description']);
+            if (isset($this->options['descContentType'])) {
+                $descContentType = $this->options['descContentType'];
+                unset($this->options['descContentType']);
+            } else {
+                $descContentType = self::DEFAULT_CONTENT_TYPE;
+            }
+            
+            $this->setDescription($description, $descContentType);
+        }
+        
+        parent::showDescription();
     }
 
 } //Silva_View_Grid

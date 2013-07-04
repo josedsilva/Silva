@@ -19,7 +19,7 @@
 /**
  * Define an ordinary html view
  *
- * @category    Curry
+ * @category    Curry CMS
  * @package     Silva
  * @author      Jose Francisco D'Silva
  * @version
@@ -49,13 +49,17 @@ class Silva_View_Html extends Silva_View
 	
 	public function render()
 	{
+	    $hook = Silva_Hook::getHookPattern(Silva_Hook::HOOK_ON_VIEW_RENDER, '%VIEWNAME%', $this->getViewname());
+	    if (method_exists($this->backend, $hook)) {
+	        Silva_Hook::execHook(array($this->backend, $hook), $this);
+	    }
 		$this->showDescription();
 		$this->addMainContent($this->content);
 	}
 	
 	public function setContent($content)
 	{
-		$this->content = $content;
+		$this->content .= (string) $content;
 		return $this;
 	}
 	

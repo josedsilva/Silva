@@ -19,7 +19,7 @@
 /**
  * Abstract class for a Curry_Backend view.
  *
- * @category    Curry
+ * @category    Curry CMS
  * @package     Silva
  * @author      Jose Francisco D'Silva
  * @version
@@ -295,7 +295,7 @@ HTML;
     {
         if ($this->description) {
             if ($this->descContentType === self::CONTENT_TEXT) {
-                $this->addMessage($this->description, "");
+                $this->addMessage($this->description, 'plain');
             } elseif ($this->descContentType === self::CONTENT_HTML) {
                 $this->addMainContent($this->description);
             }

@@ -21,7 +21,7 @@
  * A composite grid view is a view that is visited from a previous grid view having composite primary keys.
  * Since the parent view used composite primary keys, the flexigrid has passed the serialized primary key to this view.
  *
- * @category    Curry
+ * @category    Curry CMS
  * @package     Silva
  * @author      Jose Francisco D'Silva
  * @version     
