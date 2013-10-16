@@ -215,7 +215,7 @@ abstract class Silva_View
             	->find()
             	->toKeyValue('PrimaryKey', 'Name'),
             'value' => $locale,
-            'onchange' => 'this.form.submit();',
+            'onchange' => self::JS_SUBMIT_FORM,
     		  )),
     	), 'locale-selector', 'Locale selector');
     }
@@ -225,10 +225,10 @@ abstract class Silva_View
      * @param string $uiElmId
      * @param string $statusElmId
      * @param string $initialStatus
-     * 
+     *
      * @return string
      */
-    public static function getUIProgressHtml($uiElmId = 'progressbar', $statusElmId = 'status', $initialStatus = 'progress bar is initializing...')
+    public static function getUIProgressHtml($uiElmId = 'progressbar', $statusElmId = 'status', $initialStatus = 'initializing progress bar...')
     {
         $html =<<<HTML
 <p><div id="{$uiElmId}"></div></p><br/>
@@ -363,7 +363,6 @@ HTML;
                 'csvfile' => array('filebrowser', array(
                     'label' => 'CSV file',
                     'description' => 'A file with comma separated values (name,email).',
-                    //'destination' => Curry_Core::$config->curry->projectPath . '/data/temp/',
                     'required' => true,
                 )),
                 'delimiter' => array('text', array(
