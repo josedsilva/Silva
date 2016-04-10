@@ -625,8 +625,10 @@ class Silva_View_Grid extends Silva_View_BaseModel
             }
             
             $localRefs = $relMap->getLocalColumns();
-            $localRef = $localRefs[0];
-            $filters[strtolower($localRef->getName())] = array(Silva_Form::getMultiOptionsForFk($localRef, $this->locale, false), "Filter by {$relMap->getName()}", "[ All {$relMap->getName()}s ]");
+            if ($localRefs[0] instanceof ColumnMap) {
+                $localRef = clone $localRefs[0];
+                $filters[strtolower($localRef->getName())] = array(Silva_Form::getMultiOptionsForFk($localRef, $this->locale, false), "Filter by {$relMap->getName()}", "[ All {$relMap->getName()}s ]");
+            }
         }
         
         if (empty($filters)) {
